@@ -1,1 +1,1 @@
-# vsd_hdp
+# VLSI System Design - Hardware Design Program
