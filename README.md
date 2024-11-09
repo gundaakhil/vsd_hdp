@@ -170,8 +170,37 @@ Day 1: RTL design and synthesis using Iverilog, GTKWave and Yosys with SKY130 Te
 
 ## Overview
 
-Day 2: 
+Day 2: Understanding timing libraries (.libs), the difference between hieratchical and flat synthesis, and optimizing flip-flop coding techniques. These ideas are essential for enhancing RTL design and synthesis procedures.
 
 ### 1. SKY130RTL D2SK1 - Introduction to timing .libs
+
+#### Introduction to timing .libs
+ - The breakdown of SkyWater 130nm process design kit's (PDK) library named `sky130_fd_sc_hd__tt_025C_1v80.lib` is - 
+ - <strong>Sky130</strong>: 130nm technology developed by SkyWater.
+ - <strong>fd_sc_hd</strong>: Fully depleted, high density standard cell library.
+ - <strong>tt_025C</strong>: Indicates typical-typical process corner at temperature of 25°C.
+ - <strong>1v80</strong>: Nominal operating supply voltage of 1.8 Volts.
+ - <strong>PVT</strong>: Process-voltage-temperature variation is a term used to describe the three main sources of variation in circuit design: process, voltage, and temperature. PVT variations can affect a circuit's timing, power, and noise characteristics. PVT variations are caused by the unpredictability of process parameters during the fabrication of an integrated circuit (IC). Some of the parameters include: Oxide thickness, Channel length, Channel width, Impurity concentration densities, and Diffusion depths.
+
+ #### Basic Info from Library
+ ![libInfo](/images/Day1/libInfo.png)
+
+ #### Cell `sky130_fd_sc_hd__a2111o_1`:
+  - Indicates a 2-input AND into first input of 4-input OR. `X = ((A1 & A2) | B1 | C1 | D1)`
+  - <strong>a</strong>: AND gate
+  - <strong>o</strong>: OR gate
+  - <strong>2111</strong>: Two inputs (A1, A2) go into an AND gate. The result feeds into the first input of a 4-input OR gate (A1&A2, B1, C1, D1). <br>
+![logicCell](/images/Day1/logicCell.png)
+
+#### Other observations
+ - It also tell about the cell's 32 (5 input) combinations of leakage power values, area, power port info, description of capacitance, power, max_transistion of each pin, timing information.
+ - As the number of gates increases,a larger cell is employing wider transistors, the area also increases.
+ - Wider cells are faster but require larger areas and consume more power.
+ - Smaller cells have more delay but require less area and consume less power. <br>
+![compareCells](/images/Day1/compareCells.png)
+
+### 2. SKY130RTL D2SK2 - Hierarchical vs Flat Synthesis
+
+#### Hierarchical vs Flat Synthesis
 
 </detail>
