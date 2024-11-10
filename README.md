@@ -159,7 +159,7 @@ Day 1: RTL design and synthesis using Iverilog, GTKWave and Yosys with SKY130 Te
 ![show1](/images/Day1/show1.png) <br>
 ![show2](/images/Day1/show2.png)
  - Write Verilog Netlist file <br>
- `write_verilog good_mux_netlist.v or write_verilog -noattr good_mux_netlist.v`
+ `write_verilog good_mux_netlist.v or write_verilog -noattr good_mux_netlist.v`<br>
  `!gvim good_mux_netlist.v` <br>
 ![gvim](/images/Day1/gvim.png) 
 
@@ -202,5 +202,38 @@ Day 2: Understanding timing libraries (.libs), the difference between hieratchic
 ### 2. SKY130RTL D2SK2 - Hierarchical vs Flat Synthesis
 
 #### Hierarchical vs Flat Synthesis
+ - Main difference is hierarchical synthesis allows for modular design whereas flat synthesis allows a single-level design.
+
+#### Lab - Using multiple_module.v
+![example1](/images/Day1/example1.png)
+
+#### After Synthesis we expect - 
+![example2](/images/Day1/synBlock.jpeg)
+
+#### Lab Steps - Hierarchical Synthesis
+ - Invoke Yosys <br>
+  `./yosys`
+ - Read Liberty Files: Loads the library file for synthesis <br>
+  `read_liberty -lib ../sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.v`
+ - Read Verilog Files: Load design verilog file <br>
+  `read_verilog ../sky130RTLDesignAndSynthesisWorkshop/verilog_files/multiple_modules.v`
+ - Run Synthesis on Top Level Module: Specify the top level module for yosys synthesis <br>
+  `synth -top multiple_modules` <br>
+![example3](/images/Day1/example3.png) <br>
+![example4](/images/Day1/example4.png)
+ - ABC Algorithum for Logic Optimization: Logic optimization of synthesized design by utilizing same liberty file. <br>
+  `abc -liberty ../sky130RTLDesignAndSynthesisWorkshop/lib/sky130_fd_sc_hd__tt_025C_1v80.v`
+![abcHS](/images/Day1/abcHS.png)
+ - Show command: to visualize the synthesized design <br>
+  `show` 
+![showHS](/images/Day1/example5.png)
+ - Write Verilog Netlist: Generate synthesized netlist verilog file <br>
+  `write_verilog -noattr multiple_modules_netlist.v`
+![wvHS](/images/Day1/wvHS.png)
+![mmnetlist](/images/Day1/mmnetlist.png)
+
+#### Lab Steps - Flat Synthesis
+ - 
+
 
 </detail>
