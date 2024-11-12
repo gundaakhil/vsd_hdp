@@ -13,13 +13,13 @@
 ## Yosys
 
 ```
-$ git clone https://github.com/YosysHQ/yosys.git
-$ brew install cmake gcc gawk tcl-tk libtool bison flex make
-$ brew install graphviz xdot neovim macvim
-$ cd yosys
-$ git submodule update --init
-$ make
-$ ./yosys
+git clone https://github.com/YosysHQ/yosys.git
+brew install cmake gcc gawk tcl-tk libtool bison flex make
+brew install graphviz xdot neovim macvim
+cd yosys
+git submodule update --init
+make
+./yosys
 ```
 
 ![yosys](/images/Day0/yosys.png)
@@ -27,8 +27,8 @@ $ ./yosys
 ## Iverilog
 
 ```
-$ brew install icarus-verilog
-$ iverilog
+brew install icarus-verilog
+iverilog
 ```
 
 ![iverilog](/images/Day0/iverilog.png)
@@ -36,8 +36,8 @@ $ iverilog
 ## GTKWave
 
 ```
-$ brew install gtkwave
-$ gtkwave
+brew install gtkwave
+gtkwave
 ```
 
 ![gtkwave](/images/Day0/gtkwave.png)
@@ -91,7 +91,7 @@ Day 1: RTL design and synthesis using Iverilog, GTKWave and Yosys with SKY130 Te
 
 #### Steps
 
-- Clone the repository - git clone https://github.com/kunalg123/sky130RTLDesignAndSynthesisWorkshop.git <br>
+- Clone the repository - git clone <https://github.com/kunalg123/sky130RTLDesignAndSynthesisWorkshop.git> <br>
 ![gitClone](/images/Day1/sky130GitClone.png)
 
 #### Key Points
@@ -395,7 +395,7 @@ show
 
 ```
 module mul2 (input [2:0] a, output [3:0] y);
-	assign y = a * 2;
+ assign y = a * 2;
 endmodule
 ```
 
@@ -420,7 +420,7 @@ write_verilog -noattr mul2_netlist.v
 
 ```
 module mult8 (input [2:0] a , output [5:0] y);
-	assign y = a * 9;
+ assign y = a * 9;
 endmodule
 ```
 
@@ -493,7 +493,7 @@ techniques and importance in chip design.
 
 ```
 module opt_check (input a , input b , output y);
-	assign y = a?b:0;
+ assign y = a?b:0;
 endmodule
 ```
 
@@ -520,7 +520,7 @@ write_verilog -noattr opt_check_netlist.v
 
 ```
 module opt_check2 (input a , input b , output y);
-	assign y = a?1:b;
+ assign y = a?1:b;
 endmodule
 ```
 
@@ -546,7 +546,7 @@ write_verilog -noattr opt_check2_netlist.v
 
 ```
 module opt_check3 (input a , input b, input c , output y);
-	assign y = a?(c?b:0):0;
+ assign y = a?(c?b:0):0;
 endmodule
 ```
 
@@ -644,10 +644,10 @@ After optimization flatten: <br>
 module dff_const1(input clk, input reset, output reg q);
 always @(posedge clk, posedge reset)
 begin
-	if(reset)
-		q <= 1'b0;
-	else
-		q <= 1'b1;
+ if(reset)
+  q <= 1'b0;
+ else
+  q <= 1'b1;
 end
 endmodule
 ```
@@ -680,10 +680,10 @@ write_verilog -noattr dff_const1.v
 module dff_const2(input clk, input reset, output reg q);
 always @(posedge clk, posedge reset)
 begin
-	if(reset)
-		q <= 1'b1;
-	else
-		q <= 1'b1;
+ if(reset)
+  q <= 1'b1;
+ else
+  q <= 1'b1;
 end
 endmodule
 ```
@@ -718,16 +718,16 @@ module dff_const3(input clk, input reset, output reg q);
 reg q1;
 always @(posedge clk, posedge reset)
 begin
-	if(reset)
-	begin
-		q <= 1'b1;
-		q1 <= 1'b0;
-	end
-	else
-	begin
-		q1 <= 1'b1;
-		q <= q1;
-	end
+ if(reset)
+ begin
+  q <= 1'b1;
+  q1 <= 1'b0;
+ end
+ else
+ begin
+  q1 <= 1'b1;
+  q <= q1;
+ end
 end
 endmodule
 ```
@@ -763,16 +763,16 @@ module dff_const4(input clk, input reset, output reg q);
 reg q1;
 always @(posedge clk, posedge reset)
 begin
-	if(reset)
-	begin
-		q <= 1'b1;
-		q1 <= 1'b1;
-	end
-	else
-	begin
-		q1 <= 1'b1;
-		q <= q1;
-	end
+ if(reset)
+ begin
+  q <= 1'b1;
+  q1 <= 1'b1;
+ end
+ else
+ begin
+  q1 <= 1'b1;
+  q <= q1;
+ end
 end
 endmodule
 ```
@@ -805,16 +805,16 @@ module dff_const5(input clk, input reset, output reg q);
 reg q1;
 always @(posedge clk, posedge reset)
 begin
-	if(reset)
-	begin
-		q <= 1'b0;
-		q1 <= 1'b0;
-	end
-	else
-	begin
-		q1 <= 1'b1;
-		q <= q1;
-	end
+ if(reset)
+ begin
+  q <= 1'b0;
+  q1 <= 1'b0;
+ end
+ else
+ begin
+  q1 <= 1'b1;
+  q <= q1;
+ end
 end
 endmodule
 ```
@@ -849,10 +849,10 @@ reg [2:0] count;
 assign q = count[0];
 always @(posedge clk ,posedge reset)
 begin
-	if(reset)
-		count <= 3'b000;
-	else
-		count <= count + 1;
+ if(reset)
+  count <= 3'b000;
+ else
+  count <= count + 1;
 end
 endmodule
 
@@ -889,10 +889,10 @@ reg [2:0] count;
 assign q = (count[2:0] == 3'b100);
 always @(posedge clk ,posedge reset)
 begin
-	if(reset)
-		count <= 3'b000;
-	else
-		count <= count + 1;
+ if(reset)
+  count <= 3'b000;
+ else
+  count <= count + 1;
 end
 endmodule
 ```
@@ -929,6 +929,312 @@ write_verilog -noattr counter_opt2.v
 
 Day 4: Focused on Gate-Level Simulation (GLS), the distinctions between blocking and non-blocking statements, and identifying synthesis-simulation mismatches. These concepts are essential for debugging and enhancing the accuracy of RTL designs throughout the synthesis process.
 
-### 1. Task
+### 1. GLS concepts and Flow using Iverilog
+
+#### Gate Level Simulation Concepts
+
+- Gate Level refers to the netlist representation of a design after synthesis has been completed.
+- RTL simulations occur before synthesis, while Gate Level Simulation (GLS) takes place afterward. In RTL simulation, the Device Under Test (DUT) is the RTL design, while in GLS, it is the netlist generated post-synthesis.
+- The RTL code and the synthesized netlist are logically intended to be equivalent, allowing the same testbenches to verify both.
+- Although the synthesized netlist is expected to maintain the same logical accuracy as the RTL design, mismatches (known as synthesis-simulation mismatches) can sometimes arise. GLS is therefore necessary to detect and resolve these issues, ensuring logical correctness after synthesis.
+- To perform GLS, the Gate-level netlist, testbench, and Gate-level Verilog models are supplied to the simulator.
+
+##### GLS can operate in various delay modes
+
+- **Functional validation (zero gate delay model, similar to RTL simulation)**: If the Gate-level Verilog models lack timing data for different process corners, GLS can verify only the functional correctness of the design. Faster process as there is no timing validation involved.
+
+- **Full timing validation (delay annotation)**: When the Gate-level Verilog models include necessary timing details (gate delays, setup/hold violations in standard delay format), GLS can verify both functional correctness and timing behavior of the design. Slower process due to detailed timing process.
+
+#### Gate Level Simulation Flow using Iverilog
+
+![GLSBD](/images/Day4/GLSBD.png)
+
+- To perform Gate-Level Simulation (GLS) using Icarus Verilog (Iverilog), we need a testbench to evaluate the design. A gate-level netlist synthesized from RTL code, then these files are provided to  Iverilog. Finally the results are verified for timing and functional accuracy. In essence, GLS verifies that the synthesized design operates correctly with real gate delays and satisfies timing constraints.
+
+![GLSBD2](/images/Day4/GLSBD2.png)
+
+#### Synthesis and Simulation Mismatch
+
+Some of the common causes for Synthesis - Simulation mismatch (mismatch between pre-synthesis and post-synthesis simulations):
+
+- **Incomplete sensitivity list**: An incomplete sensitivity list in RTL code (such as for combinational logic in Verilog `always` blocks) can also cause synthesis-simulation mismatches. The sensitivity list defines the signals that trigger the execution of the `always` block. If any relevant signal is omitted from this list, it can lead to simulation mismatches due to incorrect behavior in pre-synthesis RTL simulation compared to post-synthesis.To prevent this, it's best to use the `always @(*)` syntax in Verilog, which ensures that all signals involved in combinational logic are automatically included in the sensitivity list.
+- **Blocking vs. Non-Blocking Assignments**: The incorrect use of blocking (=) and non-blocking (<=) assignments is a common cause of mismatches between RTL simulation and synthesized design behavior.
+  - **Blocking Assignments (=)**: In blocking assignments, statements execute sequentially within an always block. The assignment occurs immediately, "blocking" the next line of code until the current one completes. Using blocking assignments in sequential logic (like inside a clocked always block for flip-flops) can lead to unintended dependencies. The sequential update behavior in a synthesized design may differ from the RTL simulation if the execution order changes unexpectedly.
+  - **Non-blocking Assignments (<=)**: Non-blocking assignments update the value of a variable at the end of the simulation time step, allowing all right-hand side expressions in the always block to evaluate before any left-hand side variable is updated. If non-blocking assignments are misused in combinational logic, it can lead to inconsistencies in simulation, as values may not update immediately within the always block.
+  - Common Issues from Misuse: Race conditions, incorrect timing, unexpected results in pipelining.
+  - To avoid mismatches: Use blocking assignments (=) for combinational logic. Use non-blocking assignments (<=) for sequential (clocked) logic.
+- **Non-standard verilog coding**: Using non standard verilog code can cause mismatch between simulation and synthesis.
+  - Misuse of blocking statements in conditional structures (like if, case, for, generate) can lead to mismatch.
+  - Missing cases in if conditions may cause unintended latches, complicating the synthesis outcome.
+  - Missing or overlapping conditions in case statements can similarly result in unintended latches or misinterpretations during synthesis.
+
+#### Missing sensitivity list
+
+![MSL](/images/Day4/MSL.png)
+
+- In the example, the `always` block only triggers when `sel` changes. As a result, the output `y` does not update if only `i0` or `i1` change while `sel` remains constant, effectively causing it to behave like a latch. The corrected design on the right shows the proper coding for a mux, where the `always(*)` block responds to any changes in the relevant signals.
+
+#### Blocking Statements Leading to Synthesis Simulation Mismatch
+
+![BANBA](/images/Day4/BANBA.png)
+
+- The example above, on the left side uses non-blocking assignments, which is a recommended best practice. Conversely, the code on the right side directly assigns d to q, which can cause significant issues as it will create only one latch as q0 is already assigned with d before assigning it to q.
+
+#### Caveats with Blocking Statements
+
+![BANBA2](/images/Day4/BANBA2.png)
+
+- In the above example, y in the left-side code gets the previous value of q0, creating a delay effect similar to a flop. However, in synthesis, no actual flop will be generated. If the order is reversed (as shown in the right-side code), y would instead receive the latest q0 value.
+
+Although both versions yield the same circuit upon synthesis, their simulation behaviors differ. In the left-side code, y takes the old q0 value, whereas the right-side code provides y with the updated q0 value, which may lead to synthesis-simulation mismatches. Using non-blocking assignments helps prevent these discrepancies.
+
+### 2. Labs on GLS and Synthesis Simulation Mismatch
+
+#### Lab GLS Synth Sim Mismatch
+
+- The Gate level verilog model(s) need to be provided as shown below to do GLS using iverilog:
+
+```
+Syntax:
+    iverilog <path-to-gate-level-verilog-model(s)> <netlist_file.v> <tb_top.v>
+
+Example using ternary_operator_mux_netlist.v:
+    iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky130_fd_sc_hd.v ternary_operator_mux_netlist.v tb_ternary_operator_mux.v
+```
+
+#### Example 1: ternary_operator_mux.v
+
+```
+module ternary_operator_mux (input i0 , input i1 , input sel , output y);
+ assign y = sel?i1:i0;
+endmodule
+```
+
+##### Simulation Output
+
+![e1sim](/images/Day4/e1sim.png)
+
+##### Lab steps for ternary_operator_mux.v synthesis and GLS generation
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog ternary_operator_mux.v
+synth -top ternary_operator_mux
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr ternary_operator_mux_netlist.v
+!gvim ternary_operator_mux_netlist.v
+```
+
+##### Netlist Post Synthesis
+
+```
+module ternary_operator_mux(i0, i1, sel, y);
+  wire _0_;
+  wire _1_;
+  wire _2_;
+  wire _3_;
+  input i0;
+  wire i0;
+  input i1;
+  wire i1;
+  input sel;
+  wire sel;
+  output y;
+  wire y;
+  sky130_fd_sc_hd__mux2_1 _4_ (
+    .A0(_0_),
+    .A1(_1_),
+    .S(_2_),
+    .X(_3_)
+  );
+  assign _0_ = i0;
+  assign _1_ = i1;
+  assign _2_ = sel;
+  assign y = _3_;
+endmodule
+```
+
+![e1stat](/images/Day4/e1stat.png)
+![e1show](/images/Day4/e1show.png)
+
+#### Simulation Post GLS
+
+Command used for GLS:
+
+```
+iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky130_fd_sc_hd.v ternary_operator_mux_netlist.v tb_ternary_operator_mux.v
+./a.out
+gtkwave tb_ternary_operator_mux.vcd
+```
+
+![e1simgls](/images/Day4/e1simgls.png)
+
+- Clearly pre-synthesis and post-synthesis design simulation match.
+
+#### Example 2: bad_mux.v
+
+```
+module bad_mux (input i0 , input i1 , input sel , output reg y);
+always @ (sel)
+begin
+ if(sel)
+  y <= i1;
+ else 
+  y <= i0;
+end
+endmodule
+```
+
+##### Simulation Output
+
+![e1sim](/images/Day4/e2sim.png)
+
+##### Lab steps for bad_mux.v synthesis and GLS generation
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog bad_mux.v
+synth -top bad_mux
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr bad_mux_netlist.v
+!gvim bad_mux_netlist.v
+```
+
+##### Netlist Post Synthesis
+
+```
+module bad_mux(i0, i1, sel, y);
+  wire _0_;
+  wire _1_;
+  wire _2_;
+  wire _3_;
+  input i0;
+  wire i0;
+  input i1;
+  wire i1;
+  input sel;
+  wire sel;
+  output y;
+  wire y;
+  sky130_fd_sc_hd__mux2_1 _4_ (
+    .A0(_0_),
+    .A1(_1_),
+    .S(_2_),
+    .X(_3_)
+  );
+  assign _0_ = i0;
+  assign _1_ = i1;
+  assign _2_ = sel;
+  assign y = _3_;
+endmodule
+```
+
+![e2stat](/images/Day4/e2stat.png)
+![e2show](/images/Day4/e2show.png)
+
+#### Simulation Post GLS
+
+Command used for GLS:
+
+```
+iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky130_fd_sc_hd.v bad_mux_netlist.v tb_bad_mux.v
+./a.out
+gtkwave tb_bad_mux.vcd
+```
+
+![e2simgls](/images/Day4/e2simgls.png)
+
+- In this scenario, there’s a noticeable discrepancy between the pre-synthesis and post-synthesis simulation results. The pre-synthesis simulation behaves similarly to a positive-edge triggered D flip-flop, where the "sel" signal acts as the clock and "i1" as the data input. However, the synthesized design yields a 2-input multiplexer, not a flip-flop.
+
+- Additionally, Yosys generates a warning about potential missing signals in the sensitivity list, assuming the circuit is purely combinational, which could contribute to the mismatch.
+
+![yosysmissmatcherror](/images/Day4/e2missmatcherror.png)
+
+### 3. Labs on Synthesis Simulation Mismatch Blocking Statement
+
+#### Lab Synth Sim Mismatch Blocking Statement
+
+Example - blocking_caveat.v
+
+```
+module blocking_caveat (input a , input b , input  c, output reg d); 
+reg x;
+always @ (*)
+begin
+ d = x & c;
+ x = a | b;
+end
+endmodule
+```
+
+##### Simulation Output
+
+- RTL Simulation shows, the d takes the old value of x causing incorrect functionality and the blocking assignments make it seem as if there is a flop in the design.
+
+![bcsim](/images/Day4/bcsim.png)
+
+##### Lab steps for blocking_caveat.v synthesis and GLS generation
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog blocking_caveat.v
+synth -top blocking_caveat
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr blocking_caveat_netlist.v
+!gvim blocking_caveat_netlist.v
+```
+
+##### Netlist Post Synthesis
+
+```
+module blocking_caveat(a, b, c, d);
+  wire _0_;
+  wire _1_;
+  wire _2_;
+  wire _3_;
+  wire _4_;
+  input a;
+  wire a;
+  input b;
+  wire b;
+  input c;
+  wire c;
+  output d;
+  wire d;
+  sky130_fd_sc_hd__o21a_1 _5_ (
+    .A1(_2_),
+    .A2(_1_),
+    .B1(_3_),
+    .X(_4_)
+  );
+  assign _2_ = b;
+  assign _1_ = a;
+  assign _3_ = c;
+  assign d = _4_;
+endmodule
+```
+
+![bcstat](/images/Day4/bcstat.png)
+![bcshow](/images/Day4/bcshow.png)
+
+#### Simulation Post GLS
+
+Command used for GLS:
+
+```
+iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky130_fd_sc_hd.v blocking_caveat_netlist.v tb_blocking_caveat.v
+./a.out
+gtkwave tb_blocking_caveat.vcd
+```
+
+![bcsimgls](/images/Day4/bcsimgls.png)
+
+- Here, the mismatch between pre- and post-synthesis simulations arises due to the use of blocking assignments. For a combinational logic where the output is meant to be `d = (a + b) * c`:
+- In the RTL simulation, blocking assignments create the appearance of a flip-flop in the design.
+- In the gate-level simulation, however, synthesis optimizes the design to an `O2A1` gate that implements `d = (a + b) * c` without any flip-flops, leading to a discrepancy between the simulations.
+- **Learning Note** - Always be careful in design phase with the use of blocking statements.
 
 </details>
