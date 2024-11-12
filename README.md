@@ -477,18 +477,366 @@ techniques and importance in chip design.
   - **Sequential Logic Cloning**: Reduces interconnect delays by duplicating a flip-flop whose output feeds multiple distant flops, placing each clone close to its destination. (Floor Plan Aware Synthesis)
   - **Retiming**: Adjusts the placement of combinational logic between flip-flops, redistributing it to optimize the slack time and increase the maximum operating frequency. Improve the performance of the circuit.
 
-##### Sequential constant propagation
+#### Sequential constant propagation
 
 - Consider an example of DFF with asynchronous reset where D input is grounded, the logic ie reduced to Y=1. Whereas for a DFF with the asynchronous set because while Q=1 when Set=1, but Q=0 at Set=0 at the next CLK pulse. Q is dependent not only on Set but also on the clock edge, so this technique canot be applied.
 
 ![scp](/images/Day1/scp.png)
 
-##### Other Techniques not covered in labs
+#### Other Techniques not covered in labs
 
 ![oso](/images/Day1/oso.png)
 
 ### 2. Combinational Logic Optimizations
 
-#### Introduction to Optimization
+#### Example 1 - opt_check.v
+
+```
+module opt_check (input a , input b , output y);
+	assign y = a?b:0;
+endmodule
+```
+
+`y=a?b:0` can be written as `y=(~a*0) + (ab)` which can futher be reduced to `y=ab`, that is an AND gate.
+
+- **Command to optimize**: `opt_clean -purge`
+
+##### Lab steps for opt_check.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog opt_check.v
+synth -top opt_ckeck
+opt_clean -purge
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr opt_check_netlist.v
+```
+
+![opt_clean_command](/images/Day1/opt_clean_command.png)
+![optcheckshow](/images/Day1/optcheckshow.png)
+
+#### Example 2 - opt_check2.v
+
+```
+module opt_check2 (input a , input b , output y);
+	assign y = a?1:b;
+endmodule
+```
+
+`y=a?1:b` can be written as `y=(~a*b) + (a*1)` which can futher be reduced to `y=a+b` using **Absorption Law**, that is an OR gate.
+
+- **Command to optimize**: `opt_clean -purge`
+
+##### Lab steps for opt_check2.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog opt_check2.v
+synth -top opt_ckeck2
+opt_clean -purge
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr opt_check2_netlist.v
+```
+
+![optcheck2show](/images/Day1/optcheck2show.png)
+
+#### Example 3 - opt_check3.v
+
+```
+module opt_check3 (input a , input b, input c , output y);
+	assign y = a?(c?b:0):0;
+endmodule
+```
+
+`y=a?(c?b:0):0` can be written as `y=(~a*0) + (a*(~c*0+cb))` which can futher be reduced to `y=abc`, that is an 3 input AND gate.
+
+- **Command to optimize**: `opt_clean -purge`
+
+##### Lab steps for opt_check3.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog opt_check3.v
+synth -top opt_ckeck3
+opt_clean -purge
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr opt_check3_netlist.v
+```
+
+![optcheck3show](/images/Day1/optcheck3show.png)
+
+#### Example 4 - opt_check4.v
+
+```
+module opt_check4 (input a , input b , input c , output y);
+ assign y = a?(b?(a & c ):c):(!c);
+endmodule
+```
+
+`y=a?(b?(a & c ):c):(!c)` can be written as `y=(~a*~c) + a*((~b*c)+b(ac))` which can futher be reduced to `y=(~a*~c)+abc+(a*~b*c)` => `y=(~a*~c)+c(a*~b+ab)` which comes into a `y=(~a*~c)+(a*c)`, that is an XNOR gate.
+
+- **Command to optimize**: `opt_clean -purge`
+
+##### Lab steps for opt_check4.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog opt_check4.v
+synth -top opt_ckeck4
+opt_clean -purge
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr opt_check4_netlist.v
+```
+
+![optcheck4show](/images/Day1/optcheck4show.png)
+
+#### Task 1 - multiple_module_opt.v
+
+```
+module sub_module1(input a , input b , output y);
+  assign y = a & b;
+endmodule
+
+module sub_module2(input a , input b , output y);
+  assign y = a^b;
+endmodule
+
+module multiple_module_opt(input a , input b , input c , input d , output y);
+  wire n1,n2,n3;
+  sub_module1 U1 (.a(a) , .b(1'b1) , .y(n1));
+  sub_module2 U2 (.a(n1), .b(1'b0) , .y(n2));
+  sub_module2 U3 (.a(b), .b(d) , .y(n3));
+  assign y = c | (b & n1); 
+endmodule
+```
+
+- **Command to optimize**: `opt_clean -purge`
+
+##### Lab steps for multiple_module_opt.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog multiple_module_opt.v
+synth -top multiple_module_opt
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+flatten
+opt_clean -purge
+show
+write_verilog -noattr multiple_module_opt_netlist.v
+```
+
+Before optimization flatten: <br>
+![opttaskshow](/images/Day1/opttaskshow.png)
+
+After optimization flatten: <br>
+![opttaskflatten](/images/Day1/opttaskflatten.png) <br>
+![opttaskshow2](/images/Day1/opttaskshow2.png)
+
+### 3. Sequential Logic Optimizations
+
+#### Example 1 - dff_const1.v
+
+```
+module dff_const1(input clk, input reset, output reg q);
+always @(posedge clk, posedge reset)
+begin
+	if(reset)
+		q <= 1'b0;
+	else
+		q <= 1'b1;
+end
+endmodule
+```
+
+- For dff_const1.v, q=0 as long as reset=1. However, when reset=0 q does not immediately becomes 1 rather at the next rising edge of the clk as shown below. So the optimization cannot be applied.
+
+**Simulation Waveform**:
+![dffc1sim](/images/Day1/dffc1sim.png)
+
+- **Command to optimize**: `dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib`
+
+##### Lab steps for dff_const1.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog dff_const1.v
+synth -top dff_const1
+dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr dff_const1.v
+```
+
+![dffc1stat](/images/Day1/dffc1stat.png)
+![dffc1show](/images/Day1/dffc1show.png)
+
+#### Example 2 - dff_const2.v
+
+```
+module dff_const2(input clk, input reset, output reg q);
+always @(posedge clk, posedge reset)
+begin
+	if(reset)
+		q <= 1'b1;
+	else
+		q <= 1'b1;
+end
+endmodule
+```
+
+- For dff_const2.v, q remains 1 even if reset is applied or not and value does not have to wait for clock posedge. So optimization can be applied.
+
+**Simulation Waveform**:
+![dffc2sim](/images/Day1/dffc2sim.png)
+
+- **Command to optimize**: `dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib`
+
+##### Lab steps for dff_const2.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog dff_const2.v
+synth -top dff_const2
+dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr dff_const2.v
+```
+
+![dffc2stat](/images/Day1/dffc2stat.png)
+![dffc2stat2](/images/Day1/dffc2stat2.png)
+![dffc2show](/images/Day1/dffc2show.png)
+
+#### Example 3 - dff_const3.v
+
+```
+module dff_const3(input clk, input reset, output reg q);
+reg q1;
+always @(posedge clk, posedge reset)
+begin
+	if(reset)
+	begin
+		q <= 1'b1;
+		q1 <= 1'b0;
+	end
+	else
+	begin
+		q1 <= 1'b1;
+		q <= q1;
+	end
+end
+endmodule
+```
+
+- For dff_const3.v, there are two flip-flops.  q1=0 as long as reset=1. However, when reset=0 q1 does not immediately becomes 1 rather at the next rising edge of the clk with some propagation delay as shown below. q=1 as long as reset=1, acting as set rather than reset. However, when reset=0 q samples q1 as 0 as there are some propagation delay for q1as shown below. At the next clk edge q samples q1 as 1. So the optimization cannot be applied.
+
+![dffc3circuit](/images/Day1/dffc3circuit.png)
+
+**Simulation Waveform**:
+![dffc3sim](/images/Day1/dffc3sim.png)
+
+- **Command to optimize**: `dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib`
+
+##### Lab steps for dff_const3.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog dff_const3.v
+synth -top dff_const3
+dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr dff_const3.v
+```
+
+![dffc3stat](/images/Day1/dffc3stat.png)
+![dffc3show](/images/Day1/dffc3show.png)
+
+#### Example 4 - dff_const4.v
+
+```
+module dff_const4(input clk, input reset, output reg q);
+reg q1;
+always @(posedge clk, posedge reset)
+begin
+	if(reset)
+	begin
+		q <= 1'b1;
+		q1 <= 1'b1;
+	end
+	else
+	begin
+		q1 <= 1'b1;
+		q <= q1;
+	end
+end
+endmodule
+```
+
+**Simulation Waveform**:
+![dffc4sim](/images/Day1/dffc4sim.png)
+
+- **Command to optimize**: `dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib`
+
+##### Lab steps for dff_const4.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog dff_const4.v
+synth -top dff_const4
+dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr dff_const4.v
+```
+
+![dffc4stat](/images/Day1/dffc4stat.png)
+![dffc4stat2](/images/Day1/dffc4stat2.png)
+![dffc4show](/images/Day1/dffc4show.png)
+
+#### Example 5 - dff_const5.v
+
+```
+module dff_const5(input clk, input reset, output reg q);
+reg q1;
+always @(posedge clk, posedge reset)
+begin
+	if(reset)
+	begin
+		q <= 1'b0;
+		q1 <= 1'b0;
+	end
+	else
+	begin
+		q1 <= 1'b1;
+		q <= q1;
+	end
+end
+endmodule
+```
+
+**Simulation Waveform**:
+![dffc5sim](/images/Day1/dffc5sim.png)
+
+- **Command to optimize**: `dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib`
+
+##### Lab steps for dff_const5.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog dff_const5.v
+synth -top dff_const5
+dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr dff_const5.v
+```
+
+![dffc5stat](/images/Day1/dffc5stat.png)
+![dffc5show](/images/Day1/dffc5show.png)
 
 </details>
