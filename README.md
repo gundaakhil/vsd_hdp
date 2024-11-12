@@ -179,7 +179,7 @@ Day 1: RTL design and synthesis using Iverilog, GTKWave and Yosys with SKY130 Te
 
 Day 2: Understanding timing libraries (.libs), the difference between hieratchical and flat synthesis, and optimizing flip-flop coding techniques. These ideas are essential for enhancing RTL design and synthesis procedures.
 
-### 1. SKY130RTL D2SK1 - Introduction to timing .libs
+### 1. Introduction to timing .libs
 
 #### Introduction to timing .libs
 
@@ -210,7 +210,7 @@ Day 2: Understanding timing libraries (.libs), the difference between hieratchic
 - Smaller cells have more delay but require less area and consume less power. <br>
 ![compareCells](/images/Day1/compareCells.png)
 
-### 2. SKY130RTL D2SK2 - Hierarchical vs Flat Synthesis
+### 2. Hierarchical vs Flat Synthesis
 
 #### Hierarchical vs Flat Synthesis
 
@@ -285,7 +285,7 @@ show
 ![submodule2](/images/Day1/submodule2.png)
 ![submodule3](/images/Day1/submodule3.png)
 
-### 3. SKY130RTL D2SK3 - Various Flop Coding Styles and Optimization
+### 3. Various Flop Coding Styles and Optimization
 
 #### What are Flip-Flops?
 
@@ -399,6 +399,8 @@ module mul2 (input [2:0] a, output [3:0] y);
 endmodule
 ```
 
+![mul2paper](/images/Day1/mul2paper.png)
+
 ```
 read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 read_verilog mult_2.v
@@ -422,6 +424,8 @@ module mult8 (input [2:0] a , output [5:0] y);
 endmodule
 ```
 
+![mul8paper](/images/Day1/mul8paper.png)
+
 ```
 read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 read_verilog mult_8.v
@@ -435,4 +439,56 @@ write_verilog -noattr mul8_netlist.v
 ![mul8show](/images/Day1/mul8show.png)
 ![mul8netlist](/images/Day1/mul8netlist.png)
 
-</detail>
+</details>
+
+<details>
+<summary>Day 3 -  Combinational and Sequential Optmizations </summary>
+
+## Overview
+
+Day 3: Understanding about combinational and sequential optmizations
+techniques and importance in chip design.
+
+### 1. Introduction to Optimizations
+
+#### Introduction to Optimization
+
+- Sequencing the logic to achieve the most optimized design (Area and Power Saving).
+- Techniques used in optimization:
+  - **Constant Propagation**: Directly optimized by identifying constant signals within the circuit, known as constant propagation, to simplify the design.
+  - **Boolean Logic Optimization**: Techniques such as K-map and Quine McKluskey for simplifying Boolean expressions, reducing the complexity of logic expressions and enhancing efficiency.
+
+#### Combinational Logic Optimization
+
+- **Constant Propagation**: Direct optimization technique that substitutes the values of known constant variable. In addition to removing pointless computations, this can simplify expressions. Consider the following example, if `A` signal is always `0` in a certain context, any expression dependent on that signal can be simplified accordingly.
+
+![ccp](/images/Day1/ccp.png)
+
+- **Boolean Logic Optimization**: Using methods such as Karnaugh maps (K-maps) or the Quine-McCluskey algorithm, boolean expressions can be simiplied further. This helps reduce the number of logic gates implemented in the design, improving area and power consumption.
+
+![cbl](/images/Day1/cbl.png)
+
+#### Sequential Logic Optimization
+
+- Sequential logic optimization concentrates on unnecessary flip-flops and state reduction.
+- **Basic Technique**: Sequential constant propagation. If a flip-flop’s output (Q) remains unchanged (when D is tied to 0 in an async reset), the flip-flop can be removed to streamline the circuit.
+- **Advance Techniques**:
+  - **State Optimization**: Removes unused states to simplify the state machine.
+  - **Sequential Logic Cloning**: Reduces interconnect delays by duplicating a flip-flop whose output feeds multiple distant flops, placing each clone close to its destination. (Floor Plan Aware Synthesis)
+  - **Retiming**: Adjusts the placement of combinational logic between flip-flops, redistributing it to optimize the slack time and increase the maximum operating frequency. Improve the performance of the circuit.
+
+##### Sequential constant propagation
+
+- Consider an example of DFF with asynchronous reset where D input is grounded, the logic ie reduced to Y=1. Whereas for a DFF with the asynchronous set because while Q=1 when Set=1, but Q=0 at Set=0 at the next CLK pulse. Q is dependent not only on Set but also on the clock edge, so this technique canot be applied.
+
+![scp](/images/Day1/scp.png)
+
+##### Other Techniques not covered in labs
+
+![oso](/images/Day1/oso.png)
+
+### 2. Combinational Logic Optimizations
+
+#### Introduction to Optimization
+
+</details>
