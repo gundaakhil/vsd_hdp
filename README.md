@@ -839,4 +839,96 @@ write_verilog -noattr dff_const5.v
 ![dffc5stat](/images/Day1/dffc5stat.png)
 ![dffc5show](/images/Day1/dffc5show.png)
 
+### 4. Sequential Logic Optimizations For Unused Outputs
+
+#### Example 1 - counter_opt.v
+
+```
+module counter_opt (input clk , input reset , output q);
+reg [2:0] count;
+assign q = count[0];
+always @(posedge clk ,posedge reset)
+begin
+	if(reset)
+		count <= 3'b000;
+	else
+		count <= count + 1;
+end
+endmodule
+
+```
+
+**Expected Waveform**:
+![counter1ckt](/images/Day1/counter1ckt.png)
+
+**Simulation Waveform**:
+![counter1sim](/images/Day1/counter1sim.png)
+
+- **Command to optimize**: `dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib`
+
+##### Lab steps for counter_opt.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog counter_opt.v
+synth -top counter_opt
+dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr counter_opt.v
+```
+
+![counter1stat](/images/Day1/counter1stat.png)
+![counter1show](/images/Day1/counter1show.png)
+
+#### Example 1 - counter_opt2.v
+
+```
+module counter_opt (input clk , input reset , output q);
+reg [2:0] count;
+assign q = (count[2:0] == 3'b100);
+always @(posedge clk ,posedge reset)
+begin
+	if(reset)
+		count <= 3'b000;
+	else
+		count <= count + 1;
+end
+endmodule
+```
+
+**Expected Waveform**:
+![counter2ckt](/images/Day1/counter2ckt.png)
+
+**Simulation Waveform**:
+![counter2sim](/images/Day1/counter2sim.png)
+
+- **Command to optimize**: `dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib`
+
+##### Lab steps for counter_opt2.v synthesis using optimization
+
+```
+read_liberty -lib ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_verilog counter_opt2.v
+synth -top counter_opt2
+dfflibmap -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+abc -liberty ../lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+show
+write_verilog -noattr counter_opt2.v
+```
+
+![counter2stat](/images/Day1/counter2stat.png)
+![counter2show](/images/Day1/counter2show.png)
+
+</details>
+
+<details>
+<summary>Day 4 -  GLS, Blocking vs Non-Blocking and Sythesis-Simulation Mismatch </summary>
+
+## Overview
+
+Day 4: Focused on Gate-Level Simulation (GLS), the distinctions between blocking and non-blocking statements, and identifying synthesis-simulation mismatches. These concepts are essential for debugging and enhancing the accuracy of RTL designs throughout the synthesis process.
+
+### 1. Task
+
 </details>
