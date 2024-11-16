@@ -1238,3 +1238,97 @@ gtkwave tb_blocking_caveat.vcd
 - **Learning Note** - Always be careful in design phase with the use of blocking statements.
 
 </details>
+
+<details>
+<summary>VSDBabySoC</summary>
+
+## Overview
+
+The VSDBabySoC is a basic System-on-Chip (SoC) design that includes a RISC-V processor (rvmyth), a Phase-Locked Loop (PLL) module (pll), and a Digital-to-Analog Converter (DAC) module (dac). This project showcases the integration of these IP cores and focuses on simulating and verifying the design's behavior through both pre-synthesis and post-synthesis simulations.
+
+### System-on-chip (SoC)
+
+- A System on Chip (SoC) is an integrated circuit that consolidates all or most of the components required for a complete electronic system into a single chip. It combines a microprocessor or microcontroller with various other essential components like memory, input/output (I/O) interfaces, analog components, digital logic, and sometimes even specialized processors (e.g., graphics processors or machine learning accelerators).
+
+- SoCs are widely used in devices where space, power efficiency, and performance are key concerns, such as smartphones, tablets, wearables, and embedded systems. The integration of multiple functionalities into a single chip reduces power consumption, lowers costs, and enhances processing speed by reducing the distance data must travel between components.
+
+### VSDBabySoC
+
+- VSDBabySoC is a RISCV-based SoC consisting of one RVMYTH microprocessor, an 8x-PLL to generate a stable clock, and a 10-bit DAC to communicate with other analog devices.
+  - **RISC-V Processor (rvmyth)**: RISC-V is an open standard instruction set architecture based on established reduced instruction set computer(RISC) principles. It was first started by Prof. Krste Asanović and graduate students Yunsup Lee and Andrew Waterman in May 2010 as part of the Parallel Computing Laboratory, at UC Berkeley. Unlike most other ISA designs, the RISC-V ISA is provided under open source licenses that do not require fees to use, which provides it a huge edge over other commercially available ISAs. RVMYTH core is a simple RISCV-based CPU, introduced in a workshop by RedwoodEDA and VSD.
+  - **PPL Module (pll)**: A Phase-Locked Loop (PLL) is a control system designed to produce an output signal with a phase that aligns with an input signal's phase. PLLs are frequently applied in synchronization tasks, such as clock generation and distribution.
+  - **DAC Module (dac)**: A Digital-to-Analog Converter (DAC) is a system that translates digital signals into analog form, commonly used in communication systems to create digitally-defined transmission signals. High-speed DACs are critical for mobile communications, while ultra-high-speed DACs are integral in optical communication systems.
+
+![BabySoC](/images/BabySoC/VSDBabySoC.png)
+
+### Project Structure
+
+The project is structured as follows:
+
+- **src/include/**: Contains header files (.vh) that define essential macros and parameters for the SoC setup.
+- **src/module/**: Holds the Verilog files defining the behavior and logic of each SoC module, including the RISC-V processor, PLL, DAC, and any other supporting modules.
+- **output/**: Serves as the directory for storing all files generated through the compilation and simulation processes, including compiled binaries, waveform files, and simulation results.
+
+### Requirements
+
+The project is designed to run in a Unix-like environment (Linux or macOS), open source tool for compiling and simulating Verilog code (Icarus Verilog) and a waveform viewer for examining simulation outputs (GTKWave)
+
+### Simulations
+
+The project involves two key stages of simulation:
+
+- **Pre-Synthesis**: Stage where you simulate and verify the design using its Register Transfer Level (RTL) verilog code. Simulations at this stage allow designers to verify the functional correctness of the RTL code without worrying about timing delays or physical constraints.
+- **Post-Synthesis**: Stage where the RTL code has been synthesized, thats is it’s been transformed into a gate-level netlist with specific logic gates mapped to a target technology (standard cell library). Post-synthesis simulations ensure that the synthesized design meets both functional and timing requirements. It helps verify that the design hasn’t lost logical integrity during synthesis (catching synthesis-simulation mismatches).
+- In short, pre-synthesis focuses on verifying functional correctness in a high-level RTL design and post-synthesis ensures the synthesized gate-level design meets both functional and timing requirements.
+
+### Project Step-by-Step Guide
+
+#### 1. Setup and Prepare Project Directory
+
+- Clone the VSDBabySoC Repo and setup the directory structure as follows:"
+
+[Github - VSDBabySoC](https://github.com/manili/VSDBabySoC.git)
+
+```
+VSDBabySoC/
+├── src/
+│   ├── include/
+│   │   ├── sandpiper.vh
+│   ├── module/
+│   │   ├── vsdbabysoc.v      # Top-level module
+│   │   ├── rvmyth.v          # RISC-V core module
+│   │   ├── avsdpll.v         # PLL module
+│   │   ├── avsddac.v         # DAC module
+│   │   └── testbench.v       # Testbench for simulation
+└── output/
+```
+
+#### 2. Important Files Description
+
+- **vsdbabysoc.v (Top-Level SoC Module)** - This is the top-level module that integrates the rvmyth, pll, and dac modules. Consisting of 6 inputs and 1 output. Inputs include, core processor reset (reset), pll control signals (VCO_IN, ENb_CP, ENb_VCO, REF) and DAC reference voltage (VREFH). Outputs include analog output from DAC (OUT). [Reference - Github](https://github.com/manili/VSDBabySoC.git)
+
+- **rvmyth.v (RISC-V Core)**: The rvmyth module is a simple RISC-V based processor. It takes input clock singal generated by the PLL (CLK) and (reset). It outputs a 10-bit digital signal (OUT) to the DAAC. [Reference - Github](https://github.com/kunalg123/rvmyth/)
+
+- **avsdpll.v (PLL Module)**: The pll module is a phase-locked loop that generates a stable clock (CLK) for the RISC-V core. Control and reference signals are the inputs for the PLL (VCO_IN, ENb_CP, ENb_VCO, REF) and a stable clock (CLK) output is generated for core and synchronizing other modules. [Reference 1 - Github](https://github.com/ireneann713/PLL.git) and [Reference 2 - Github](https://github.com/lakshmi-sathi/avsdpll_1v8.git)
+
+- **avsddac.v (DAC Module)**: The dac module converts the 10-bit digital signal from the rvmyth core to an analog output. Takes 2 inputs, D and VREFH, and gives out one output signal (Analog signal). [Reference - Github](https://github.com/vsdip/rvmyth_avsddac_interface.git)
+
+- **testbench.v**: The testbench file serves as a test module for validating the functionality of `vsdbabysoc`. It handles signal initialization, generates the clock signal, and sets up waveform dumping for simulations conducted both before and after synthesis. The output generates files such as `pre_synth_sim.vcd` or `post_synth_sim.vcd`, depending on the simulation conditions.
+
+#### 3. What is Modeling and understanding modeling of VSDBabySOC
+
+**Understanding Modeling**  
+Modeling involves creating a physical or logical representation of a system to generate data, guide decision-making, or predict system behavior. These models are essential for defining, analyzing, and communicating. Modeling and simulation (M&S) play a significant role in the VLSI domain, as they enable tasks like analysis, design specification, verification, and validation of systems. By using models, engineers can gain insights into system functionality and performance.
+
+**Modeling the VSDBabySoC**  
+In the case of the VSDBabySoC, modeling and simulation involve defining the behavior of its components. Initial input signals trigger the `vsdbabysoc` module, starting the PLL to generate the correct clock signal for the circuit. The clock drives the `rvmyth` processor to execute instructions, resulting in output values. These values are passed to the DAC core, which generates the final output signal, `OUT`. The design includes three primary elements (IP cores) encapsulated in a wrapper to form the SoC, along with a testbench module for verification. Through this modeling process, the system’s functionality and interaction between components are accurately represented and analyzed. Modeling 3 Main IP Cores
+
+- RVMYTH modeling
+- PLL modeling
+- DAC modeling
+
+#### 4. Simulation Steps
+
+**Pre-synthesis Simulation Steps**:
+
+</details>
