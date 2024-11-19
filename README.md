@@ -1331,4 +1331,31 @@ In the case of the VSDBabySoC, modeling and simulation involve defining the beha
 
 **Pre-synthesis Simulation Steps**:
 
+```
+$ pip3 install pyyaml click sandpiper-saas
+$ git clone https://github.com/manili/VSDBabySoC.git
+$ cd VSDBabySoC
+$ sandpiper-saas -i ./src/module/*.tlv -o rvmyth.v --bestsv --noline -p verilog --outdir ./src/module/
+$ mkdir output
+$ iverilog -o output/pre_synth_sim.out -DPRE_SYNTH_SIM -I src/include -I src/module src/module/testbench.v
+$ cd output
+$ ./pre_synth_sim.out
+$ gtkwave pre_synth_sim.vcd
+```
+
+![Command1](/images/BabySoC/command1.png)
+![Command2](/images/BabySoC/command2.png)
+![Waveform](/images/BabySoC/presynthsimwave.png)
+
+**Note**:
+
+- **-DPRE_SYNTH_SIM**: Defines the PRE_SYNTH_SIM macro for conditional compilation in the testbench.
+- make file have the detailed steps/commands to preform different synthesis. Also can try,
+
+```
+$ cd VSDBabySoC
+$ make pre_synth_sim
+$ gtkwave output/pre_synth_sim/pre_synth_sim.vcd
+```
+
 </details>
