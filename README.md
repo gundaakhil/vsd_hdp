@@ -1240,7 +1240,7 @@ gtkwave tb_blocking_caveat.vcd
 </details>
 
 <details>
-<summary>VSDBabySoC</summary>
+<summary>VSDBabySoC - Introduction and Pre Synthesis</summary>
 
 ## Overview
 
@@ -1356,6 +1356,100 @@ $ gtkwave pre_synth_sim.vcd
 $ cd VSDBabySoC
 $ make pre_synth_sim
 $ gtkwave output/pre_synth_sim/pre_synth_sim.vcd
+```
+
+</details>
+
+<details>
+<summary>VSDBabySoC - Post Synthesis</summary>
+
+## Overview
+
+Post-Synthesis: Stage where the RTL code has been synthesized, thats is it’s been transformed into a gate-level netlist with specific logic gates mapped to a target technology (standard cell library). Post-synthesis simulations ensure that the synthesized design meets both functional and timing requirements. It helps verify that the design hasn’t lost logical integrity during synthesis (catching synthesis-simulation mismatches).
+
+## Steps in synthesis
+1. Run Yosys and Read required verilog files
+
+```
+./yosys
+read_verilog ../VSDBabySoC/src/module/vsdbabysoc.v 
+read_verilog -I ../VSDBabySoC/src/include ../VSDBabySoC/src/module/rvmyth.v 
+read_verilog -I ../VSDBabySoC/src/include/ ../VSDBabySoC/src/module/clk_gate.v
+```
+
+![ps_read1](/images/BabySoC/ps_read1.png) <br>
+![ps_read2](/images/BabySoC/ps_read2.png) <br>
+![ps_read3](/images/BabySoC/ps_read3.png)
+
+2. Load lib file required for synthesis
+
+```
+read_liberty -lib ../VSDBabySoC/src/lib/avsdpll.lib 
+read_liberty -lib ../VSDBabySoC/src/lib/avsddac.lib 
+read_liberty -lib ../VSDBabySoC/src/lib/sky130_fd_sc_hd__tt_025C_1v80.lib 
+```
+
+![ps_read4](/images/BabySoC/ps_read4.png)
+
+
+3. Run top level synthesis
+
+```
+synth -top vsdbabysoc 
+```
+
+![ps_topsynth1](/images/BabySoC/ps_topsynth1.png) <br>
+![ps_topsynth2](/images/BabySoC/ps_topsynth2.png) <br>
+![ps_topsynth3](/images/BabySoC/ps_topsynth3.png) <br>
+![ps_topsynth4](/images/BabySoC/ps_topsynth4.png)
+
+4. Map D Flip-Flops to Standard Cells
+
+```
+dfflibmap -liberty ../VSDBabySoC/src/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+```
+
+![ps_dffmap](/images/BabySoC/ps_dffmap.png)
+
+5. Perform Optimization and Technology Mapping
+
+```
+opt
+abc -liberty ../VSDBabySoC/src/lib/sky130_fd_sc_hd__tt_025C_1v80.lib -script +strash;scorr;ifraig;retime;{D};strash;dch,-f;map,-M,1,{D}
+```
+
+![ps_opt](/images/BabySoC/ps_opt.png) <br>
+![ps_abcmap](/images/BabySoC/ps_abcmap.png)
+
+6. Clean up
+
+```
+flatten
+setundef -zero
+clean -purge
+rename -enumerate
+```
+
+![ps_clean](/images/BabySoC/ps_cleanup.png)
+
+7. Check Statistics and Write the Synthesized Netlist
+
+```
+stat
+write_verilog -noattr ../VSDBabySoC/output/synth/vsdbabysoc.synth.v
+```
+
+![ps_writeverilog](/images/BabySoC/ps_writeverilog.png)
+
+## Steps in post-synthesis simulation
+
+Simulation Steps -
+
+```
+$ iverilog -o output/post_synth_sim/post_synth_sim.out -DPOST_SYNTH_SIM -I src/include -I src/module -I src/gls_modles src/module/testbench.v
+$ cd output/post_synth_sim
+$ ./post_synth_sim.out
+$ gtkwave post_synth_sim.vcd
 ```
 
 </details>
