@@ -1452,4 +1452,8 @@ $ ./post_synth_sim.out
 $ gtkwave post_synth_sim.vcd
 ```
 
+![ps_gtkwave](/images/BabySoC/ps_gtkwave.png)
+
+Something went wrong!!!
+
 </details>
