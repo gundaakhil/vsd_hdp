@@ -1452,8 +1452,10 @@ $ ./post_synth_sim.out
 $ gtkwave post_synth_sim.vcd
 ```
 
+![ps_stat1](/images/BabySoC/ps_stat.png) <br>
+![ps_stat2](/images/BabySoC/ps_stat2.png) <br>
 ![ps_gtkwave](/images/BabySoC/ps_gtkwave.png)
 
-Something went wrong!!!
+- It is observed that pre-synthesis and post-synthesis simulation graphs matched using same testbench.
 
 </details>
