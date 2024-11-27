@@ -1459,3 +1459,22 @@ $ gtkwave post_synth_sim.vcd
 - It is observed that pre-synthesis and post-synthesis simulation graphs matched using same testbench.
 
 </details>
+
+<details>
+<summary>VSDBabySoC - Static timing analysis using OpenSTA</summary>
+
+## Overview
+
+OpenSTA is a gate level static timing verifier. As a stand-alone executable it can be used to verify the timing of a design using standard file formats. For more info about the OpenSTA see [here](https://github.com/The-OpenROAD-Project/OpenSTA).
+
+## OpenSTA Installation - Using Docker
+
+![sta](/images/BabySoC/sta.png)
+
+## Static timing analysis using OpenSTA
+
+![sta2](/images/BabySoC/sta2.png)
+
+I was able to write the tcl file using the reference gitrepo file and sta.config file but unable to understand how to execute the sta commands!!!
+
+</details>
