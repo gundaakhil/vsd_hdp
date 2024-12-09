@@ -1573,3 +1573,614 @@ report_wns -digits {4} >> /OpenSTA/examples/BabySoC/STA_OUPUT/sta_wns.txt
 ![babysocpvt5](/images/BabySoC/TNS.png)
 
 </details>
+
+<details>
+<summary> Day 1 - Basics of NMOS Drain Current (Id) vs Drain-to-source Voltage (Vds)</summary>
+
+## Overview
+
+Understanding the concept of circuit design and SPICE simulations. Why do we need SPICE simulation. Basic element in Circuit Design - NMOS Transistor, their region of operations. Building SPICE setup for basic NMOS.
+
+<details>
+
+<summary>Theory</summary>
+
+### 1. Introduction to Circuit Design and SPICE simulations
+
+#### Why do we need SPICE simulations?
+
+**Circuit Design**: The interconnection of the logic gates, like NAND, NOR, NOT, which are made of NMOS and PMOS, to get required functionality is Circuit design. Example, an inverter, pull up PMOS, pull down NMOS, drains are connected to OUT with capaciot load, gates are connected to INPUT, Source of PMOS conncted to Supply and Source of NMOS connected to GND.
+
+![CircuitDesign](/images/CMOS/CircuitDesign.png)
+
+**SPICE Simulation**: SPICE simulations provide a platform to test and validate that design in a virtual environment. Consider same circuit when provided with a input waveform using SPICE simulator, output characteristics waveform are generated. These waveform can tell you about the delay of the cell, and by changing the value of design parameter (width,length of transistor), delay parameter can be determined. (W/L determines current flow which determines delay)
+
+![SPICESimulation](/images/CMOS/SPICESIMULATION.png)
+
+**Why do we need SPICE**: Consider the following example
+
+![Example1](/images/CMOS/Example1.png)
+
+- CBUF 1 and CBUF 2 difference comes from circuit design (might have different drive strengths, different W/L).
+- Source of delay table values is from SPICE simulations. Same SPICE simulator is used to verify the delays on the circuit design.
+
+![WhySpice](/images/CMOS/WhySpice.png)
+
+#### Introduction to basic element in Circuit Design - NMOS Transistor
+
+- N type Metal Oxide Semiconductor transistor
+
+![NMOS](/images/CMOS/NMOS.png)
+
+#### Strong Inversion, Threshold Voltage and Threshold Voltage with Substrate Potential
+
+- Threshold Voltage: Important topic (models) which drive all the spice simulations
+
+![TH1](/images/CMOS/Threshold1.png)
+![TH2](/images/CMOS/Threshold2.png)
+
+- Consider potential to body terminal
+
+![BodyNeg1](/images/CMOS/BodyTerminalNeg.png)
+![BodyNeg2](/images/CMOS/BodyTerminalNeg2.png)
+![BodyNeg3](/images/CMOS/BodyTerminalNeg3.png)
+
+- Thershold voltage at Vsb = 0, Body effect coefficient and Fermi Potential are constants provided by foundry which will form the model and feed to SPICE simulation for various calculations
+
+![BodyNeg4](/images/CMOS/BodyTerminalNeg4.png)
+
+### 2. NMOS Resistive and Saturation Regions of Operation
+
+#### Resistive region of operation with small drain-source voltage
+
+![RR1](/images/CMOS/vgs1v.png)
+![RR2](/images/CMOS/vgs1v5.png)
+![RR3](/images/CMOS/vgs2v.png)
+![RR4](/images/CMOS/ResistiveRegion1.png)
+
+#### Drift current theory
+
+- Cox is constant value comes from foundry
+- Drift Current: Current due to potential difference
+- Diffusion Current: Current due to difference in carrier concentration
+
+![DC1](/images/CMOS/DC1.png)
+![DC2](/images/CMOS/DC2.png)
+
+#### Drain current model for linear region of operation
+
+![DC3](/images/CMOS/DC3.png)
+![DC4](/images/CMOS/DC4.png)
+![DC5](/images/CMOS/DC5.png)
+
+#### SPICE conclusion to resistive operation
+
+- How do we calculate the Id for different values of Vgs and at every value of Vgs, sweep Vds till (Vgs-Vt)?
+- SPICE simulation can help us doing these calculations and generate graphs.
+
+#### Saturation Region/Pinch-off region condition
+
+![SR1](/images/CMOS/SR1.png)
+![SR2](/images/CMOS/SR2.png)
+![SR3](/images/CMOS/SR3.png)
+
+#### Drain current model for saturation region of operation
+
+- In Saturation Region, channel voltage is no longer dependent on Vds, the channel voltage is constant at Vgs-Vt.
+
+![SR4](/images/CMOS/SR4.png)
+![LinearFinal](/images/CMOS/LinearFinal.png)
+![SR6](/images/CMOS/SR6.png)
+![SR5](/images/CMOS/SR5.png)
+
+### 3. Introduction to SPICE
+
+#### Basic SPICE setup
+
+Step 1: Proper SPICE setup by providing spice model parameters
+Step 2: Check whether the parameters are coming from correct set of technolgy node. First set of inputs to SPICE.
+Step 3: Give SPICE Netlist
+Step 4: Define Technology file (Contains all the foundry constant values)
+Step 5: Provide simulation commands
+
+![SP1](/images/CMOS/Spice1.png)
+![SP2](/images/CMOS/Spice2.png)
+![SP3](/images/CMOS/Spice3.png)
+
+#### Circuit description in SPICE syntax
+
+- SPICE Netlist: Define components and nodes. Nodes, in,n1,vdd,0 in below example.
+- M1 vdd n1 0 0 nmos W=1.8u L=1.2u represents MXX=MOSFETXX, drain, gate, source, substrate, MOSFET name in technology file, Width of gate and Length of gate respectively
+- R1 in n1 55 represents RXX=ResistorXX, first terminal, second terminal and resistance value respectively
+- Vdd vdd 0 2.5 represents VXX=Voltage Source XX, positive terminal, negative terminal and voltage source value respectively.
+- Vin in 0 2.5 represents VXX=Voltage Source XX, positive terminal, negative terminal and voltage source value respectively.
+
+```
+*** NETLIST Description ***
+M1 vdd n1 0 0 nmos W=1.8u L=1.2u 
+R1 in n1 55 
+Vdd vdd 0 2.5 
+Vin in 0 2.5
+*** .include xxxx_1um_model.mod ***
+.LIB ""xxxx_025um_model.mod" CMOS_MODELS
+```
+
+![Netlist1](/images/CMOS/Netlist1.png)
+![Netlist2](/images/CMOS/Netlist2.png)
+
+#### Define Technology Parameters/File
+
+- Model to get NMOS
+
+![Netlist3](/images/CMOS/Netlist3.png)
+![Netlist4](/images/CMOS/Netlist4.png)
+
+</details>
+
+<details>
+
+<summary>Labs</summary>
+
+### 1. Introduction to SPICE
+
+#### SPICE Lab with sky130 models
+
+- CLone the following github repo: https://github.com/kunalg123/sky130CircuitDesignWorkshop.git
+- 3 Important files:
+  - /sky130CircuitDesignWorkshop/design/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice:
+  - /sky130CircuitDesignWorkshop/design/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.corner.spice:
+  - /sky130CircuitDesignWorkshop/design/sky130_fd_pr/models/sky130.lib.pm3.spice:
+- Installation Guide for ngspice - https://www.seas.upenn.edu/~ese3700/spring2024/handouts/Spice_Install_MAC.pdf
+
+**Example**
+
+```
+
+*Model Description
+.param temp=27
+
+*Including sky130 library files
+.lib "sky130_fd_pr/models/sky130.lib.spice" tt
+
+*Netlist Description
+XM1 Vdd n1 0 0 sky130_fd_pr__nfet_01v8 w=5 l=2
+R1 n1 in 55
+Vdd vdd 0 1.8V
+Vin in 0 1.8V
+
+*simulation commands
+.op
+.dc Vdd 0 1.8 0.1 Vin 0 1.8 0.2
+
+.control
+
+run
+display
+setplot dc1
+.endc
+.end
+```
+
+```
+ngspice day1_nfet_idvds_L2_W5.spice
+plot -vdd#branch
+```
+
+- The plot of Ids vs Vds over constant Vgs:
+
+![spiceresult](/images/CMOS/spiceexample.png)
+
+</details>
+</details>
+
+<details>
+<summary> Day 2 - Velocity saturation and basics of CMOS inverter VTC</summary>
+
+## Overview
+
+Concepts covered are short channel behavior of MOSFET, Velocity saturation, MOSFET as switch and CMOS voltage transfer charcteristics from PMOS and NMOS load curves.
+
+<details>
+<summary>Theory</summary>
+
+### 1. SPICE simulation for lower nodes and velocity saturation effect
+
+#### SPICE simulation for lower nodes
+
+![LowerNode1](/images/CMOS/LowerNode1.png)
+![LowerNode2](/images/CMOS/LowerNode2.png)
+![LowerNode3](/images/CMOS/LowerNode3.png)
+
+#### Drain current vs gate voltage for long and short channel device
+
+- Quadratic Dependence on gate voltage in long channel.
+- Quadratic Dependence at lower gate voltage and linear dependence at higher voltage in short channel due to velocity saturation.
+
+![LowerNode4](/images/CMOS/LowerNode4.png)
+
+#### Velocity saturation at lower and higher electric fields
+
+- Lower values of Electric fields, velocity tends to linear function of Electric field and reaches a point where the velocity becomes constant.
+
+![VS1](/images/CMOS/VS1.png)
+![VS2](/images/CMOS/VS2.png)
+![VS3](/images/CMOS/VS3.png)
+
+#### Velocity saturation drain current model
+
+- Technology parameter: Saturation voltage (Vdsat) i.e., voltage which device velocity saturates and is independent of Vgs or Vds.
+- Vgt is minimum means FET is in Saturation region (Both for long and short channel)
+- Vds is minimum means FET is in Linear region (Both for long and short channel)
+- Vdsat is minimum means FET device velocity saturates (Only for short channel)
+
+![VS4](/images/CMOS/VS4.png)
+![VS5](/images/CMOS/VS5.png)
+
+**Observation 1**: For short channel, at higher electric fields device eneter velocity saturation and Ids remains constant as Vds increases and Id is linear function of Vgs when compared to quadratic in long channel. <br>
+**Observation 2**: Velocity Saturation causes device to saturate early.
+
+Source - 1. http://www.seas.upenn.edu/~jan/spice/spice.MOSparamlist.html / https://www.seas.upenn.edu/~jan/spice/spice.overview.html <br>
+Source - 2. http://km2000.us/franklinduan/articles/ecee.colorado.edu/~bart/book/book/chapter7/ch7_5.htm
+
+### 2. CMOS Voltage Transfer Characteristics (VTC)
+
+#### MOSFET as a switch
+
+![cmosvtc1](/images/CMOS/cmosvtc1.png)
+![cmosvtc2](/images/CMOS/cmosvtc2.png)
+![cmosvtc3](/images/CMOS/cmosvtc3.png)
+
+#### Introduction to standard MOS voltage current parameters
+
+- Rp and Rn are non linear resistor function of drain current.
+
+![cmosvtc4](/images/CMOS/cmosvtc4.png)
+![cmosvtc5](/images/CMOS/cmosvtc5.png)
+
+#### PMOS/NMOS drain current v/s drain voltage
+
+![cmosvtc6](/images/CMOS/cmosvtc6.png)
+
+#### Step1: Convert PMOS gate-source-voltage to Vin
+
+- Below are the steps to obtain Voltage-Transfer Charcteristics (VTC) for Static CMOS Inverter
+- Because we dont have internal node voltages access in simulations, hence need to convert everything into Vin, Vdd, Vss and Vout.
+
+![cmosvtc7](/images/CMOS/cmosvtc7.png)
+
+#### Step2 & Step3: Convert PMOS and NMOS drain-source-voltage to vout
+
+![cmosvtc8](/images/CMOS/cmosvtc8.png)
+![cmosvtc9](/images/CMOS/cmosvtc9.png)
+
+#### Step4: Merge PMOS,NMOS load curves and plot VTC
+
+![cmosvtc10](/images/CMOS/cmosvtc10.png)
+
+</details>
+<details>
+<summary>Labs</summary>
+
+### 1.SPICE simulation for lower nodes and velocity saturation effect
+
+#### Sky130 Id-Vgs
+
+**Example**
+
+```
+*Model Description
+.param temp=27
+
+*Including sky130 library files
+.lib "sky130_fd_pr/models/sky130.lib.spice" tt
+
+*Netlist Description
+XM1 Vdd n1 0 0 sky130_fd_pr__nfet_01v8 w=0.39 l=0.15
+R1 n1 in 55
+Vdd vdd 0 1.8V
+Vin in 0 1.8V
+
+*simulation commands
+.op
+.dc Vdd 0 1.8 0.1 Vin 0 1.8 0.2
+
+.control
+
+run
+display
+setplot dc1
+.endc
+.end
+```
+
+- The plot of Ids vs Vds over constant Vgs:
+
+![spiceresult2](/images/CMOS/spiceexample2.png)
+
+**Example**
+
+```
+*Model Description
+.param temp=27
+
+*Including sky130 library files
+.lib "sky130_fd_pr/models/sky130.lib.spice" tt
+
+*Netlist Description
+XM1 Vdd n1 0 0 sky130_fd_pr__nfet_01v8 w=0.39 l=0.15
+R1 n1 in 55
+Vdd vdd 0 1.8V
+Vin in 0 1.8V
+
+*simulation commands
+.op
+.dc Vin 0 1.8 0.1 
+
+.control
+
+run
+display
+setplot dc1
+.endc
+.end
+```
+
+- The plot of Ids vs Vgs over constant Vds:
+
+![spiceresult3](/images/CMOS/spiceexample3.png)
+</details>
+</details>
+
+<details>
+<summary> Day 3 - CMOS Switching threshold and dynamic simulations</summary>
+
+## Overview
+
+Understanding of CMOS Switching threshold, static and dynamic simulations. Analytical derivation of Switching threshold as a function of W/L of PMOS and NMOS. 
+
+<details>
+<summary>Theory</summary>
+
+### 1. Voltage transfer characteristics: SPICE simulations
+
+#### SPICE deck creation for CMOS inverter
+
+- SPICE Deck contains
+  - Component connectivity
+  - Components values
+  - Identify 'nodes'
+  - Name 'nodes'
+
+![spicedeck1](/images/CMOS/spicedeck1.png)
+
+#### SPICE simulation for CMOS inverter
+
+- SPICE Netlist for CMOS Inverter
+
+![spicedeck2](/images/CMOS/spicedeck2.png)
+
+- Same Wn/Ln = Wp/Lp = 1.5. Plot out vs in:
+
+![spicedeck3](/images/CMOS/spicedeck3.png)
+
+- Now, Wn/Ln = 1.5 and Wp/Lp = 3.75. Plot out vs in
+
+![spicedeck4](/images/CMOS/spicedeck4.png)
+
+### 2. Static behavior evaluation: CMOS inverter robustness, Switching Threshold
+
+#### Switching Threshold, Vm
+
+- Switching Threshold (Vm) where Vin = Vout. The point where maximum power is drawn due to large current. Both the transistors are saturation region.
+- The switching threshold, Vm, is defined as the point where Vin=Vout.
+- Graphically it can be found from the intersection of the VTC with the Vin=Vout line.
+- In the region around Vm, both PMOS and NMOS are in saturation, since VDS=VGS.
+- An analytical expression for Vm can be obtained by equating the currents through the PMOS and NMOS transistors, IDSn=IDSp.
+
+![switchingthreshold](/images/CMOS/switchingthreshold.png) <br>
+![switchingthreshold2](/images/CMOS/switchingthreshold2.png)
+
+#### Analytical expression of Vm as a function of (W/L)p and (W/L)n
+
+- Depending on the supply voltage, VDD and the Channel length, L, of the devices, there can be two cases:
+  - Devices are Velocity Saturated
+  - Velocity Saturation does not occur
+
+Note: For the following derivations, we ignore the effects of Channel Length Modulation for simplicity.
+
+Case 1: Devices are Velocity-Saturated - VDSAT<(VM−VT)
+
+This case is applicable to short-channel devices or when the supply voltage is high so that the devices are in velocity saturation.
+
+![vmanalysis1](/images/CMOS/vmanalysis1.png)
+![vmanalysis2](/images/CMOS/vmanalysis2.png)
+![vmanalysis3](/images/CMOS/vmanalysis3.png)
+![vmanalysis4](/images/CMOS/vmanalysis4.png)
+
+$I_{DSn} = -I_{DSp}$  
+$i.e.,$  
+$~~~~ I_{DSn} + I_{DSp} = 0$  
+
+$k_n \left[ (V_M - V_{THn})V_{DSATn} - \dfrac{V_{DSATn}^2}{2} \right] + k_p \left[ (V_M - V_{DD} - V_{THp})V_{DSATp} - \dfrac{V_{DSATp}^2}{2} \right] = 0$
+
+$k_n V_{DSATn} \left[ V_M - V_{THn} - \dfrac{V_{DSATn}}{2} \right] + k_p V_{DSATp} \left[ V_M - V_{DD} - V_{THp} - \dfrac{V_{DSATp}}{2} \right] = 0$
+
+<br>
+
+$Solving for V_M:$  
+
+$\boxed{V_M = \dfrac{\left( V_{THn}+\dfrac{V_{DSATn}}{2} \right) + r \left( V_{DD}+V_{THp}+\dfrac{V_{DSATp}}{2} \right)}{1+r}},$  
+  
+$where, ~ \boxed{r=\dfrac{k_p V_{DSATp}}{k_n V_{DSATn}} = \dfrac{\upsilon_{satp} W_p}{\upsilon_{satn} W_n}}$ _(assuming for identical oxide thickness for PMOS and NMOS transistors)_  
+
+  - Now, for large values of $V_{DD}$ compared to the threshold voltages $(V_{THp}, V_{THn})$ and saturation voltages $(V_{DSATp}, V_{DSATn})$, the above equation can be approximated to:
+
+$~~~~~~~~~~~~~~~~ \boxed{V_M \approx \dfrac{rV_{DD}}{1+r}}$  
+
+  - The switching threshold is determined by the ratio, $r$ - which is a measure of the relative drive strengths of the PMOS and NMOS transistors.
+  - For comparable values for low and high noise margins, $V_M$ is desired to be located around the centre of the available voltage swing (or at $V_{DD}/2$ as CMOS logic has rail-to-rail swing). This implies:  
+$~~~~~~~~ r \approx 1$  
+$~~~~~~~~ i.e., k_p V_{DSATp} = k_n V_{DSATn}$  
+$\boxed{(W/L)\_p = (W/L)\_n * \dfrac{{k_n}^\prime V_{DSATn}}{{k_p}^\prime V_{DSATp}}}$  
+
+  - To move the $V_M$ upwards, a larger value of $r$ is needed, which in other words is to make the PMOS wider.
+  - On the other hand, to move the $V_M$ downwards, the NMOS must be made wider.
+  - If a target design value for $V_M$ is desired, we can derive the required ratio of PMOS vs. NMOS transistor sizes in a similar manner:
+
+$~~~~~~~~ \boxed{\dfrac{(W/L)\_p}{(W/L)\_n} = \dfrac{k_n^\prime V_{DSATn} \left[ V_M - V_{THn} - \dfrac{V_{DSATn}}{2} \right]}{k_p^\prime V_{DSATp} \left[ V_{DD} - V_M + V_{THp} + \dfrac{V_{DSATp}}{2}\right]}}$  
+$~~~~~~~~ Note:$ _Make sure that the assumption that both devices are velocity-saturated still holds for the chosen operation point._
+
+
+**<ins>Case 2:</ins> Velocity Saturation does not occur - $V_{DSAT}>(V_M-V_{TH})$**  
+  - This case is applicable for long-channel devices or when the supply voltages are low, that the devices are not velocity saturated.
+  - Using a similar analysis done in Case 1 above, we derive the switching threshold, $V_M$ to be:
+
+$~~~~~~~~ \boxed{V_M = \dfrac{V_{THn} + r(V_{DD} + V_{THp})}{1+r}}, ~~~~ where ~ r = \sqrt{\dfrac{-k_p}{k_n}}$  
+
+#### Static and dynamic simulation of CMOS inverter with increased PMOS width
+
+  - The switching threshold, $V_M$ **is relatively insensitive to variations in the device ratio**.
+  - Small variations of the ratio (e.g., 3 or 2.5) do not disturb the transfer characteristic that much.
+
+![switchingthreshold3](/images/CMOS/switchingthreshold3.png)
+
+#### Applications of CMOS inverter in clock network and STA
+
+![appclockinv1](/images/CMOS/appclockinv1.png)
+![appclockinv2](/images/CMOS/appclockinv2.png)
+![appclockinv3](/images/CMOS/appclockinv3.png)
+![appclockinv4](/images/CMOS/appclockinv4.png)
+![appclockinv5](/images/CMOS/appclockinv5.png)
+
+</details>
+<details>
+<summary>Labs</summary>
+
+### 1. Voltage transfer characteristics: SPICE simulations
+
+#### Sky130 SPICE simulation for CMOS - VTC
+
+```
+*Model Description
+.param temp=27
+
+*Including sky130 library files
+.lib "sky130_fd_pr/models/sky130.lib.spice" tt
+
+*Netlist Description
+XM1 out in vdd vdd sky130_fd_pr__pfet_01v8 w=0.84 l=0.15
+XM2 out in 0 0 sky130_fd_pr__nfet_01v8 w=0.36 l=0.15
+Cload out 0 50fF
+Vdd vdd 0 1.8V
+Vin in 0 1.8V
+
+*simulation commands
+.op
+.dc Vin 0 1.8 0.01
+
+.control
+run
+setplot dc1
+display
+.endc
+.end
+```
+
+```
+ngspice day3_inv_vtc_Wp084_Wn036.spice
+plot out vs in in
+```
+
+![vtcsim](/images/CMOS/vtcsim.png)
+
+- The "switching threshold" of a CMOS inverter refers to the voltage level on the input (Vin) where the output voltage (Vout) is exactly equal to the input voltage, essentially the point on the voltage transfer curve where the two lines intersect; this is also often called the midpoint voltage (VM) of the inverter.
+
+#### Sky130 SPICE simulation for CMOS - Transient Analysis
+
+```
+*Model Description
+.param temp=27
+
+*Including sky130 library files
+.lib "sky130_fd_pr/models/sky130.lib.spice" tt
+
+*Netlist Description
+XM1 out in vdd vdd sky130_fd_pr__pfet_01v8 w=0.84 l=0.15
+XM2 out in 0 0 sky130_fd_pr__nfet_01v8 w=0.36 l=0.15
+Cload out 0 50fF
+Vdd vdd 0 1.8V
+Vin in 0 PULSE(0V 1.8V 0 0.1ns 0.1ns 2ns 4ns)
+
+*simulation commands
+.tran 1n 10n
+.control
+run
+.endc
+.end
+```
+
+```
+ngspice day3_inv_tran_Wp084_Wn036.spice
+plot out vs time in
+```
+
+- PULSE (0 to 1.8V, shift of zero, rise and fall times 0.1ns, pulse width 2ns, total time 4ns)
+
+![transientsim](/images/CMOS/transientsim.png)
+
+- The propagation delay of a logic gate e.g. inverter is the difference in time (calculated at 50% of input-output transition), when output switches, after application of input.
+
+![risefalldelay](/images/CMOS/risefalldelay.png)
+
+- The propagation delay high to low (tpHL) is the delay when output switches from high-to-low, after input switches from low-to-high. The delay is usually calculated at 50% point of input-output switching, as shown in above figure.
+
+</details>
+</details>
+
+<details>
+<summary> Day 4 - CMOS Noise Margin robustness evaluation</summary>
+
+## Overview
+<details>
+<summary>Theory</summary>
+
+### 1. Static behavior evaluation: CMOS inverter robustness, Noise margin
+
+#### Introduction to noise margin
+
+</details>
+<details>
+<summary>Labs</summary>
+
+### 1.
+
+####
+
+</details>
+</details>
+
+<details>
+<summary> Day 5 - CMOS power supply and device variation robustness evaluation</summary>
+
+## Overview
+<details>
+<summary>Theory</summary>
+
+### 1. Static behavior evaluation: CMOS inverter robustness, Power supply variation
+
+#### Smart SPICE simulation for power supply variations
+
+### 2. Static behavior evaluation: CMOS inverter robustness, Device variation
+
+#### Sources of variation: Etching process
+
+</details>
+<details>
+<summary>Labs</summary>
+
+### 1.
+
+####
+
+</details>
+</details>
