@@ -2142,7 +2142,7 @@ plot out vs time in
 
 ## Overview
 
-Understading CMOS noise margin, calculations of noise margin, importance of noise margin. Various of of noise margin with respective to device ratio.
+Understanding CMOS noise margin, calculations of noise margin, importance of noise margin. Various of of noise margin with respective to device ratio.
 
 <details>
 <summary>Theory</summary>
@@ -2270,7 +2270,7 @@ plot out vs in in
 
 ## Overview
 
-<ToDo>
+Evaluating the Robustness of the CMOS Inverter with power supply variations/scaling and device variations.
 
 <details>
 <summary>Theory</summary>
@@ -2279,17 +2279,145 @@ plot out vs in in
 
 #### Smart SPICE simulation for power supply variations
 
+- Here, we take a look at the effect of power supply scaling on the static behaviour of the CMOS Inverter.
+
+![supplyvariation1](/images/CMOS/supplyvariation1.png)
+![supplyvariation2](/images/CMOS/supplyvariation2.png)
+
+- We can see from the simulations that:
+  - The CMOS Inverter continues to work well at even 0.8V (below half the original supply voltage of 1.8V) close to the transistor threshold voltages!
+  - Since the transistor ratio, $r$ is fixed, the switching threshold, $V_M$ is approximately proportional to the $V_{DD}$.
+  - The gain of the inverter in the transition region increases with a reduction of the supply voltage.
+  - The width of the transition region also reduces when the supply voltage is scaled down compared to the original $V_{DD}$.
+
+![supplyvariation3](/images/CMOS/supplyvariation3.png)
+![supplyvariation4](/images/CMOS/supplyvariation4.png)
+
+- However, given these improvements in DC characteristics, we cannot choose to operate all our digital circuits at these low supply voltages:
+  - Reducing the supply voltage yields a significant reduction in the energy dissipation, but it is absolutely detrimental to the performance of the gate, increasing the transition times greatly.
+  - The DC characteristic becomes increasingly sensitive to variations in the device parameters such as the transistor threshold, once supply voltages and intrinsic voltages become comparable.
+  - Scaling the supply voltage means reducing the signal swing. While this typically helps to reduce the internal noise in the system (such as caused by crosstalk), it makes the design more sensitive to external noise sources that do not scale.
+
+![supplyvariation5](/images/CMOS/supplyvariation5.png)
+
 ### 2. Static behavior evaluation: CMOS inverter robustness, Device variation
 
+- While we design a gate for nominal operation conditions and typical device parameters, the actual operating temperatures might very over a large range, and the device parameters after fabrication will deviate from the nominal values used in the design process.
+
+- The DC characteristics of the static CMOS inverter turn out to be rather insensitive to these variations, and the gate remains functional over a wide range of operating conditions.
+
 #### Sources of variation: Etching process
+
+![etch1](/images/CMOS/etch1.png)<br>
+![etch2](/images/CMOS/etch2.png)<br>
+![etch3](/images/CMOS/etch3.png)<br>
+![etch4](/images/CMOS/etch4.png)
+
+#### Sources of variation: Oxide Thickness
+
+![oxidethickness1](/images/CMOS/oxidethickness1.png) <br>
+![oxidethickness2](/images/CMOS/oxidethickness2.png)
 
 </details>
 <details>
 <summary>Labs</summary>
 
-### 1.
+### 1. Static behavior evaluation: CMOS inverter robustness, Power supply variation
 
-####
+#### Smart SPICE simulation for power supply variations
+
+```
+*Model Description
+.param temp=27
+
+*Including sky130 library files
+.lib "sky130_fd_pr/models/sky130.lib.spice" tt
+
+*Netlist Description
+XM1 out in vdd vdd sky130_fd_pr__pfet_01v8 w=1 l=0.15
+XM2 out in 0 0 sky130_fd_pr__nfet_01v8 w=0.36 l=0.15
+Cload out 0 50fF
+Vdd vdd 0 1.8V
+Vin in 0 1.8V
+
+.control
+
+let powersupply = 1.8
+alter Vdd = powersupply
+	let voltagesupplyvariation = 0
+	dowhile voltagesupplyvariation < 6
+	dc Vin 0 1.8 0.01
+	let powersupply = powersupply - 0.2
+	alter Vdd = powersupply
+	let voltagesupplyvariation = voltagesupplyvariation + 1
+      end
+ 
+plot dc1.out vs in dc2.out vs in dc3.out vs in dc4.out vs in dc5.out vs in dc6.out vs in xlabel "input voltage(V)" ylabel "output voltage(V)" title "Inveter dc characteristics as a function of supply voltage"
+plot deriv(dc1.V(out)) deriv(dc2.V(out)) deriv(dc3.V(out)) deriv(dc4.V(out)) deriv(dc5.V(out)) deriv(dc6.V(out)) vs in 
++ xlabel 'Input Voltage(V)' ylabel 'Gain (dVout/dVin)' title 'Inverter Gain for different VDD'
+.endc
+.end
+```
+
+![supplyvariationsim](/images/CMOS/supplyvariationsim.png)
+
+Note: After one point the gain starts decreasing even the supply vvoltage is reduced beacause the supply voltage is not sufficient to turn on both PMOS and NMOS.
+
+### 2. Static behavior evaluation: CMOS inverter robustness, Device variation
+
+- Understand the CMOS Inverter's robustness in the case of a ridiculously extreme case of device width variation.
+
+![devicevariationlab](/images/CMOS/devicevariationlab.png)
+![devicevariationlab2](/images/CMOS/devicevariationlab2.png)
+
+```
+*** Model Description **
+.param temp=27
+.param Wp=0.84
+.param Wn=0.42
+
+*** Including sky130 library files ***
+.lib "sky130_fd_pr/models/sky130.lib.spice" tt
+
+*** Netlist Description ***
+XM1 out in vdd vdd sky130_fd_pr__pfet_01v8 w={Wp} l=0.15
+XM2 out in 0 0 sky130_fd_pr__nfet_01v8 w={Wn} l=0.15
+Cload out 0 50fF
+Vdd vdd 0 1.8V
+Vin in 0 1.8V
+
+*** Simulation Commands ***
+.dc Vin 0 1.8 0.01
+
+.control
+alterparam Wp=0.84
+alterparam Wn=0.42
+reset
+run
+
+alterparam Wp=0.42
+alterparam Wn=7
+reset
+run
+
+alterparam Wp=7
+alterparam Wn=0.36
+reset
+run
+
+plot dc1.V(out) dc2.V(out) dc3.V(out) vs in in
++ xlabel 'Input Voltage(V)' ylabel 'Output Voltage(V)' title 'Inverter VTC for Extreme Device Variations'
+.endc
+.end
+```
+
+![devicevariationsim](/images/CMOS/devicevariationsim.png)
+
+**From the simulation results:**
+
+- The shift in $V_M$ for such a large change in device variations is relatively very small.
+- The shift in Vm is towards right (high) if PMOS width is greater than NMOS width and Vm is towards left (low) if NMOS width is greater than PMOS width.
+- The variation in the $NM_H$ and $NM_L$ is also very small.
 
 </details>
 </details>
