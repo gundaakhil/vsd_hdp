@@ -2421,3 +2421,310 @@ plot dc1.V(out) dc2.V(out) dc3.V(out) vs in in
 
 </details>
 </details>
+
+<details>
+<summary> Day 1: Inception of open-source EDA, OpenLANE and Sky130 PDK </summary>
+
+### 1. Introduction
+
+### Introduction to QFN-48 Package, chip, pads, core, die and IPs
+
+**IC terminologies**:
+
+- Chip Package
+- Pads & Padring
+- Core, die
+- IPs, Macros
+- Foundry
+
+| ![PDIntro_1](/images/PD/pdintro1.png) | ![PDIntro_2](/images/PD/pdintro2.png) |
+|:---|:---|
+
+| ![PDIntro_3](/images/PD/pdintro3.png) | ![PDIntro_4](/images/PD/pdintro4.png) |
+|:---|:---|
+
+| ![PDIntro_1](/images/PD/pdintro1.png) | ![PDIntro_2](/images/PD/pdintro2.png) |
+|:---|:---|
+
+### Introduction to RISC-V
+
+- **Open-Source ISA**: RISC-V is an open-source instruction set architecture (ISA) widely adopted in computer architecture and processor design.  
+- **Origin**: Developed at the University of California, Berkeley, in 2010, it has since become a global collaboration among researchers and industry experts.  
+- **Simplicity and Modularity**: RISC-V is built on the Reduced Instruction Set Computer (RISC) philosophy, emphasizing a small, streamlined set of instructions for easy decoding and execution.  
+- **Base and Optional Instruction Sets**:
+  - Includes a base set, *RV32I*, for general-purpose computing.  
+  - Offers optional sets like *RV32F* for single-precision floating-point operations and *RV64G* for 64-bit computing, enabling customization for specific applications.  
+- **Open and Accessible**: The ISA specifications, reference implementations, and software tools are freely available, allowing users to study, modify, or develop RISC-V processors without licensing fees.  
+- **Ecosystem of Collaboration**: Its open nature has fostered a thriving community of hardware designers, software developers, and researchers who collaborate and innovate around the architecture.  
+
+| ![RISCIntro_1](/images/PD/riscintro.png) | |
+|:---|:---|
+
+### How Do Software Applications Run on Hardware?
+
+- **Hardware Dependence**: All software applications require hardware to function, with system software acting as the bridge to translate applications into a format hardware understands.  
+- **System Software Components**:  
+  - **Operating System (OS)**: Provides an environment for applications to run and handles memory management, process scheduling, and I/O operations. It also translates programs into architecture-specific assembly language instructions for execution.  
+  - **Compiler**: Converts high-level programming languages (e.g., C, Java) into assembly-level instructions compatible with the target hardware architecture (e.g., MIPS, x86, RISC-V).  
+  - **Assembler**: Translates assembly-level code into binary machine code (0s and 1s), which hardware can directly execute.  
+
+| ![SWtoHW_1](/images/PD/swtohw1.png) | ![SWtoHW_2](/images/PD/swtohw2.png) |
+|:---|:---|
+
+| ![SWtoHW_3](/images/PD/swtohw3.png) | ![SWtoHW_4](/images/PD/swtohw4.png) |
+|:---|:---|
+
+### 2. Overview of ASIC Design Flow using OpenLane
+
+### OpenLANE ASIC Design Flow
+
+Main requirements of Digital ASIC Design:
+
+- RTL Design
+- EDA Tools
+- PDK
+
+| ![flow1](/images/PD/flow1.png) | ![flow2](/images/PD/flow2.png) | ![flow3](/images/PD/flow3.png) |
+|:---|:---|:---|
+
+#### RTL IPs (Register Transfer Level Intellectual Property)
+
+- **Definition**: RTL IPs are reusable and pre-verified digital hardware blocks described at the Register Transfer Level, representing data flow between registers and associated operations.  
+- **Purpose**: In IC design, they serve as building blocks integrated into larger designs, allowing abstraction and focus on higher-level features.  
+- **Advantages**:  
+  - Accelerates design productivity and reduces time-to-market.  
+  - Improves design reliability by leveraging pre-tested components.  
+  - Encourages reuse, enabling designers to build complex systems through IP integration.  
+- **Sources**: RTL IPs can be developed in-house or licensed from vendors, streamlining design efforts while maintaining reliability.  
+
+#### EDA Tools (Electronic Design Automation)
+
+- **Role**: EDA tools aid in designing and analyzing electronic systems, including ICs and PCBs, by automating design tasks to enhance efficiency and reduce development time.  
+
+Note: Open Source RTL IPs and competitive EDA tools have been available. However, an OpenSource PDK was not available until Google collaborated with SkyWater to open source the skywater-130nm PDK.
+
+#### Process Design Kit (PDK)
+
+- **Definition**: A PDK is a set of files modeling a semiconductor fabrication process, used by design tools for IC development.  
+- **Traditional vs. Open-Source**:  
+  - Traditional PDKs are proprietary and tied to specific foundries, often requiring non-disclosure agreements.  
+  - Open-source PDKs promote collaboration, innovation, and accessibility by allowing customization to meet designer needs.  
+- **Benefits of Open-Source PDKs**:  
+  - Enhance knowledge sharing and lower barriers to entry for new designers.  
+  - Foster participation in IC development within a collaborative community.  
+- **Examples**: Notable open-source PDKs include SKY130, GFU180, and ASAP7.
+- Interface between FAB and the designer, Process Design Kit, include:
+  - Process Design Rule: DRC, LVS, PEX
+  - Device Models
+  - Digital Standard Cell Libraries
+  - I/O Libraries
+
+#### SKY130 Stackup
+
+| ![sky130stackup](/images/PD/sky130stackup.png) | |
+|:---|:---|
+
+### Simplified RTL to GDSII ASIC Design Flow
+
+- ASIC implementation consists of numerous steps involving lots of detailed sub-processes at each step.
+- A design methodology is needed for a successful ASIC implementation without any hiccups.
+- The methodology is implemented through a flow that pieces together different tools to carry out the different steps of the design process from RTL to GDSII tapeout. 
+- Also, called Automated PnR and/or Physical Implementation.
+
+| ![flow4](/images/PD/flow4.png) | |
+|:---|:---|
+
+#### RTL to GDSII Flow Steps  
+
+- **RTL Design**:  
+  - The process starts with the RTL design, where the digital circuit's behavior is defined using a hardware description language (HDL) such as VHDL or Verilog.  
+  - This stage captures the functional behavior, logic, and data paths of the circuit.  
+
+- **RTL Synthesis**:  
+  - Converts the high-level RTL description into a gate-level netlist by mapping the RTL to a library of standard cells (SCL - Standard Cell Library).  
+  - The process focuses on optimizing for area, power, and timing.  
+  - The resulting gate-level netlist serves as the input for subsequent stages.  
+
+- **Floor and Power Planning**:  
+  - Chip Floor-planning: Partition chip's area and determining the placement of key components, functional blocks, building macros, IPs and place the I/O pads in the pad ring.
+  - Macro Floor-planning: Defines chip dimensions, pin locations, the internal row definitions of the macro, locations of critical modules, power grid layout, and I/O pin placement.  
+  - Power-Planning: Design the Power Distribution Network (PDN) to ensure stable and efficient power delivery taking into account the different voltage rails, power usage trends and requirements of different blocks within the digital core, I/O and other AMS circuits.  
+  - Key objectives include area partitioning, power distribution, signal flow optimization, and setting design constraints.
+
+- **Placement**:  
+  - Assigns physical locations to each gate-level cell on the chip layout.
+  - Place the cells on the floorplan rows aligned with the sites, non-overlapping with each other.
+  - Focuses on minimizing wirelength, optimizing signal delay, and ensuring design rule compliance.  
+  - Techniques like global and detailed placement are used to achieve optimal results.  
+
+- **Clock Tree Synthesis (CTS)**:  
+  - Constructs a clock distribution network to ensure balanced and efficient clock signal delivery to sequential elements (e.g., flip-flops, registers).  
+  - Aims to minimize clock skew and meet timing requirements.  
+  - Different types: H-tree, X-tree, Fish bone, Clock mesh.
+
+- **Routing**:  
+  - Implement the interconnections using the available metal layers. Metal tracks form a routing grid, which is huge.
+  - Connects gates and components using wires and vias based on placement data.  
+  - Perform routing using a divide and conquer approach: Global routing generates routing guides and Detailed routing uses the routing guides to implement the actual wires
+  - Ensures compliance with design rules, avoids congestion, and optimizes factors like signal integrity and manufacturability.  
+
+- **Sign-off Analysis**:  
+  - The final stage of verification, involving thorough checks and simulations to ensure the design meets all specifications.  
+  - Confirms functionality, performance, power, and reliability before fabrication.  
+  - Physical Verification
+    - Design Rule Checking (RDC)
+    - Layout vs. Schematic (LVS)
+  - Timing Verification
+    - Static Timing Analysis (STA)
+
+- **GDSII File Generation**:
+  - Produces the GDSII file, the standard format containing the chip's geometric layout and manufacturing details.  
+  - Includes information on shapes, layers, masks, and other fabrication requirements.  
+
+| ![rtlgds1](/images/PD/rtlgds9.png) | ![rtlgds2](/images/PD/rtlgds8.png) | ![rtlgds3](/images/PD/rtlgds7.png) |
+|:---|:---|:---|
+
+| ![rtlgds4](/images/PD/rtlgds6.png) | ![rtlgds5](/images/PD/rtlgds5.png) | ![rtlgds6](/images/PD/rtlgds4.png) |
+|:---|:---|:---|
+
+| ![rtlgds7](/images/PD/rtlgds3.png) | ![rtlgds8](/images/PD/rtlgds2.png) | ![rtlgds9](/images/PD/rtlgds1.png) |
+|:---|:---|:---|
+
+### Introduction to OpenLANE
+
+#### OpenLane Overview
+
+- **Purpose and Capabilities**:
+  - OpenLane is a fully automated RTL to GDSII flow designed for ASIC implementation.  
+  - It encompasses all steps from RTL design to generating the GDSII layout file.  
+
+- **Key Components**:
+  - Utilizes various tools such as OpenROAD, Yosys, Magic, Netgen, CVC, SPEF-Extractor, and KLayout.  
+  - Includes custom scripts to enhance design exploration and optimization.
+  - The design exploration utility is also used for regression testing (CI).
+
+- **Supported PDKs**:
+  - Supports the A and B variants of the Sky130 PDK and the C variant of the GF180MCU PDK.  
+  - Provides documentation to extend support for other PDKs, including proprietary ones.  
+
+- **User Configuration**:
+  - Abstracts the complexity of open-source utilities by allowing users to manage configurations through a single file.
+
+- **Other points**:
+  - Started as an Open-Source Flow for a True Open Source Tape-out Experiment
+  - Main Goal: Produce a clean GDSII with no human intervention (no-human-in-the-loop)
+  - Clean means: No LVS Errors and No DRC Errors
+  - Tuned for SkyWater 130nm Open PDK. Also supports XFAB180 and GF130G
+  - Containerized: Functional out of the box
+  - Can be used to harden Macros and Chips
+  - Two modes of operation: Autonomous or Interactive
+  - Supports Design Space Exploration: Find the best set of flow configurations
+
+- OpenLANE project GitHub Page: [OpenLANE GitHub](https://github.com/efabless/openlane)
+- OpenLANE Readme Page: [OpenLANE ReadMe](https://openlane.readthedocs.io/en/latest/flow_overview.html)
+
+### OpenLANE ASIC Flow and Architecture
+
+| ![OpenLANEflow1](/images/PD/OpenLANEflow.png) |  |
+|:---|:---|
+
+OpenLane flow consists of several stages. By default all flow steps are run in sequence. Each stage may consist of multiple sub-stages. OpenLane can also be run interactively as shown [here](https://github.com/The-OpenROAD-Project/OpenLane/blob/master/docs/source/reference/interactive_mode.md).
+
+1. **Synthesis**
+    1. [`yosys/abc`](https://github.com/YosysHQ/yosys) - Perform RTL synthesis, technology mapping and formal verification.
+    2. [`OpenSTA`](https://github.com/The-OpenROAD-Project/OpenSTA) - Performs static timing analysis on the resulting netlist (post synthesis) to generate timing reports.
+2. **Floorplaning**
+    1. [`init_fp`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/ifp) - Defines the core area for the macro as well as the rows (used for placement) and the tracks (used for routing).
+    2. [`ioplacer`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/ppl) - Places the macro input and output ports.
+    3. [`pdngen`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/pdn) - Generates the power distribution network.
+    4. [`tapcell`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/tap) - Inserts welltap and decap cells in the floorplan.
+    5. [`magic`](https://github.com/RTimothyEdwards/magic) - Fake antenna diode insertion.
+3. **Placement**
+    1. [`RePLace`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/replace) - Performs global placement
+    2. [`Resizer`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/rsz) - Performs optional optimizations on the design
+    3. [`OpenDP`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/dpl) - Performs detailed placement to legalize the globally placed components
+4. **CTS**
+    1. [`TritonCTS`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/cts) - Synthesizes the clock distribution network (the clock tree)
+5. **Logical Equivalence Check (LEC)**
+    1. [`yosys`](https://github.com/YosysHQ/yosys) - Every time the netlist is modified (ECO), verification must be performed. CTS modifies the netlist and Post Placement optimizations modifies the netlist. LEC is used to formally confirm that the function did not change by modifying the netlist.
+6. **Routing**
+    1. [`FastRoute`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/cts) - Performs global routing to generate a guide file for the detailed router
+    2. [`TritonRoute`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/TritonRoute) - Performs detailed routing
+    3. [`OpenRCX`](https://github.com/The-OpenROAD-Project/OpenROAD/tree/master/src/rcx) - Performs SPEF extraction
+7. **Fake Antenna Diodes removal**
+    1. `Custom scripts in OpenROAD`
+8. **RC Extraction**
+    1. `DEF2SPEF`
+9. **Post-route STA**
+    1. `OpenSTA`
+10. **Tapeout**
+    1. [`Magic`](https://github.com/RTimothyEdwards/magic) - Streams out the final GDSII layout file from the routed def
+    2. [`KLayout`](https://github.com/KLayout/klayout) - Streams out the final GDSII layout file from the routed def as a back-up
+11. **Signoff**
+    1. [`Magic`](https://github.com/RTimothyEdwards/magic) - Performs DRC Checks & Antenna Checks
+    2. [`KLayout`](https://github.com/KLayout/klayout) - Performs DRC Checks
+    3. [`Netgen`](https://github.com/RTimothyEdwards/netgen) - Performs LVS Checks
+    4. [`CVC`](https://github.com/d-m-bailey/cvc) - Performs Circuit Validity Checks
+
+| ![olflow1](/images/PD/olflow1.png) | ![olflow2](/images/PD/olflow2.png) | !![olflow3](/images/PD/olflow3.png) |
+|:---|:---|:---|
+
+| ![olflow4](/images/PD/olflow4.png) | ![olflow5](/images/PD/olflow5.png) | !![olflow6](/images/PD/olflow6.png) |
+|:---|:---|:---|
+
+| ![olflow7](/images/PD/olflow7.png) | ![olflow8](/images/PD/olflow8.png) | !![olflow9](/images/PD/olflow9.png) |
+|:---|:---|:---|
+
+| ![olflow10](/images/PD/olflow10.png) | ![olflow11](/images/PD/olflow11.png) | !![olflow12](/images/PD/olflow12.png) |
+|:---|:---|:---|
+
+Other key OpenLane integrated open source tools over the execution stages:
+
+- Placement: [OpenPhySyn](https://github.com/scale-lab/OpenPhySyn) (formerly)
+- Routing: [CU-GR](https://github.com/cuhk-eda/cu-gr) (formerly) and [DR-CU](https://github.com/cuhk-eda/cu-gr) (detailed)
+- SPEF Extraction: [SPEF-Extractor](https://github.com/AUCOHL/spef-extractor) (formerly)
+
+| ![OpenLANEflow2](/images/PD/OpenLANEflow2.png) |  |
+|:---|:---|
+
+### OpenROAD
+
+- Everything in Floorplanning through Routing in the OpenLANE flow is done using [OpenROAD](https://github.com/The-OpenROAD-Project/OpenROAD) and its various sub-utilities.
+- Also called automated PnR (Place and Route)
+- Performs:
+  - Floor/Power Planning
+  - End Decoupling Capacitors and Tap cells insertion
+  - Placement: Global and Detailed
+  - Post placement optimization
+  - Clock Tree Synthesis (CTS)
+  - Routing: Global and Detailed
+
+#### Handling of Antenna Rules Violations in OpenLANE flow
+
+- When a metal wire segment is fabricated, it can act as an antenna.
+  - Reactive ion etching causes charge to accumulate on the wire.
+  - Transistor gates can be damaged during fabrication
+
+| ![antennarule1](/images/PD/antennarule1.png) |
+|:---|
+
+#### Two solutions
+
+| ![antennarule2](/images/PD/antennarule2.png) |
+|:---|
+
+- Bridging attaches a higher layer intermediary
+  - Requires Router awareness (not there yet!)
+- Add antenna diode cell to leak away charges
+  - Antenna diodes are provided by the SCL
+
+**Methodology followed**: a preventive approach
+
+- Add a Fake Antenna Diode next to every cell input after placement
+- Run the Antenna Checker (Magic) on the routed layout
+- If the checker reports a violation on the cell input pin, replace the Fake Diode cell
+
+| ![antennarule3](/images/PD/antennarule3.png) |
+|:---|
+
+</details>
