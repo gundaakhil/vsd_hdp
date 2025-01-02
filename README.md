@@ -2628,7 +2628,7 @@ Note: Open Source RTL IPs and competitive EDA tools have been available. However
 | ![OpenLANEflow1](/images/PD/OpenLANEflow.png) |  |
 |:---|:---|
 
-OpenLane flow consists of several stages. By default all flow steps are run in sequence. Each stage may consist of multiple sub-stages. OpenLane can also be run interactively as shown [here](https://github.com/The-OpenROAD-Project/OpenLane/blob/master/docs/source/reference/interactive_mode.md).
+OpenLane flow consists of several stages. By default all flow steps are run in sequence. Each stage may consist of multiple sub-stages. OpenLane can also be run interactively as shown [here](https://github.com/The-OpenROAD-Project/OpenLane/blob/master/docs/source/reference/interactive_mode.md). Everything in Floorplanning through Routing is done using OpenROAD and its various sub-utilities.
 
 1. **Synthesis**
     1. [`yosys/abc`](https://github.com/YosysHQ/yosys) - Perform RTL synthesis, technology mapping and formal verification.
@@ -2666,16 +2666,16 @@ OpenLane flow consists of several stages. By default all flow steps are run in s
     3. [`Netgen`](https://github.com/RTimothyEdwards/netgen) - Performs LVS Checks
     4. [`CVC`](https://github.com/d-m-bailey/cvc) - Performs Circuit Validity Checks
 
-| ![olflow1](/images/PD/olflow1.png) | ![olflow2](/images/PD/olflow2.png) | !![olflow3](/images/PD/olflow3.png) |
+| ![olflow1](/images/PD/olflow1.png) | ![olflow2](/images/PD/olflow2.png) | ![olflow3](/images/PD/olflow3.png) |
 |:---|:---|:---|
 
-| ![olflow4](/images/PD/olflow4.png) | ![olflow5](/images/PD/olflow5.png) | !![olflow6](/images/PD/olflow6.png) |
+| ![olflow4](/images/PD/olflow4.png) | ![olflow5](/images/PD/olflow5.png) | ![olflow6](/images/PD/olflow6.png) |
 |:---|:---|:---|
 
-| ![olflow7](/images/PD/olflow7.png) | ![olflow8](/images/PD/olflow8.png) | !![olflow9](/images/PD/olflow9.png) |
+| ![olflow7](/images/PD/olflow7.png) | ![olflow8](/images/PD/olflow8.png) | ![olflow9](/images/PD/olflow9.png) |
 |:---|:---|:---|
 
-| ![olflow10](/images/PD/olflow10.png) | ![olflow11](/images/PD/olflow11.png) | !![olflow12](/images/PD/olflow12.png) |
+| ![olflow10](/images/PD/olflow10.png) | ![olflow11](/images/PD/olflow11.png) | ![olflow12](/images/PD/olflow12.png) |
 |:---|:---|:---|
 
 Other key OpenLane integrated open source tools over the execution stages:
@@ -2726,5 +2726,562 @@ Other key OpenLane integrated open source tools over the execution stages:
 
 | ![antennarule3](/images/PD/antennarule3.png) |
 |:---|
+
+### 3. Familiarize with OpenLANE flow
+
+The OpenLANE flow can be configured using the following available variables for design
+  * **Flow Configuration variables**: [https://openlane.readthedocs.io/en/latest/reference/configuration.html](https://openlane.readthedocs.io/en/latest/reference/configuration.html)
+  * **PDK Configuration variables**: [https://openlane.readthedocs.io/en/latest/reference/pdk_configuration.html](https://openlane.readthedocs.io/en/latest/reference/pdk_configuration.html)
+
+### OpenLane Output
+
+All output run data is placed by default under ./designs/design_name/runs. Each flow cycle will output a timestamp-marked folder containing the following file structure:
+
+```
+<design_name>
+├── config.json/config.tcl
+├── runs
+│   ├── <tag>
+│   │   ├── config.tcl
+│   │   ├── {logs, reports, tmp}
+│   │   │   ├── cts
+│   │   │   ├── signoff
+│   │   │   ├── floorplan
+│   │   │   ├── placement
+│   │   │   ├── routing
+│   │   │   └── synthesis
+│   │   ├── results
+│   │   │   ├── final
+│   │   │   ├── cts
+│   │   │   ├── signoff
+│   │   │   ├── floorplan
+│   │   │   ├── placement
+│   │   │   ├── routing
+│   │   │   └── synthesis
+```
+
+To delete all generated runs under all designs:
+`make clean_runs`
+
+### Installation of Ubuntu using UTM for MacOS
+
+Reference Links - [Link1](https://github.com/AnupriyaKrishnamoorthy/NASSCOM-PD-ANU.git), [Link2](https://github.com/arunkpv/vsd-hdp/blob/main/docs/Day_20.md) and [Link3](https://www.youtube.com/watch?v=MVLbb1aMk24)
+
+### OpenLane Installation
+
+Prior to the installation of the OpenLane install the dependencies and packages using the command shown below :</br>
+``` 
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt install -y build-essential python3 python3-venv python3-pip make git
+```
+
+Docker Installation :</br>
+
+```
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io
+sudo docker run hello-world
+
+sudo groupadd docker
+sudo usermod -aG docker $USER
+sudo reboot 
+
+# Check for successful installation
+sudo docker run hello-world 
+```
+
+**Steps to install OpenLane, PDKs and Tools**</br>
+```
+cd $HOME
+git clone https://github.com/The-OpenROAD-Project/OpenLane --recurse-submodules 
+cd OpenLane
+make
+make test
+cd /home/anupriyavsd/OpenLane/designs/ci
+cp -r * ../
+```
+After a successful ```make``` when you run ```make test``` you will have a ```Basic test passed``` on your terminal. At this step when openlane is running, include the picorv32a.
+In order to start open lane and run synthesis we would follow the next steps.
+
+### OpenLANE Terminal
+
+The entry point for OpenLANE is the `./flow.tcl` script. This script is used to run the flow, start interactive sessions, select the configuration and create OpenLane design files.
+  * To run the automated flow for a design
+
+```
+./flow.tcl -design <design_name>
+```
+
+  * To start an [**interactive session**](https://openlane.readthedocs.io/en/latest/reference/interactive_mode.html)
+
+```
+ ./flow.tcl -interactive
+```
+
+### Steps to run synthesis in OpenLane Interactive mode
+
+```
+cd ~/OpenLane
+make mount
+./flow.tcl -interactive
+package require openlane 0.9
+prep -design picorv32a
+run_synthesis
+```
+
+| ![openlane](/images/PD/openlane1.png) |
+|:---|
+
+To view nelist
+```
+cd /home/anupriyavsd/OpenLane/designs/picorv32a/runs/RUN_2024.05.20_09.42.05/results/synthesis
+vim picorv32a.v
+```
+
+To view the report:
+```
+cd /home/anupriyavsd/OpenLane/designs/picorv32a/runs/RUN_2024.05.20_09.42.05/reports/synthesis
+vim 1-synthesis.AREA_0.stat.rpt
+```
+
+```
+63. Printing statistics.
+
+=== picorv32 ===
+
+   Number of wires:               8989
+   Number of wire bits:           9371
+   Number of public wires:        1512
+   Number of public wire bits:    1894
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               9269
+     sky130_fd_sc_hd__a2111o_2       8
+     sky130_fd_sc_hd__a211o_2       66
+     sky130_fd_sc_hd__a211oi_2       8
+     sky130_fd_sc_hd__a21bo_2       17
+     sky130_fd_sc_hd__a21boi_2       5
+     sky130_fd_sc_hd__a21o_2       248
+     sky130_fd_sc_hd__a21oi_2      144
+     sky130_fd_sc_hd__a221o_2      104
+     sky130_fd_sc_hd__a221oi_2       2
+     sky130_fd_sc_hd__a22o_2       182
+     sky130_fd_sc_hd__a22oi_2        3
+     sky130_fd_sc_hd__a2bb2o_2       8
+     sky130_fd_sc_hd__a311o_2       14
+     sky130_fd_sc_hd__a31o_2       136
+     sky130_fd_sc_hd__a31oi_2        3
+     sky130_fd_sc_hd__a32o_2        35
+     sky130_fd_sc_hd__a41o_2         5
+     sky130_fd_sc_hd__a41oi_2        1
+     sky130_fd_sc_hd__and2_2       129
+     sky130_fd_sc_hd__and2b_2       31
+     sky130_fd_sc_hd__and3_2       118
+     sky130_fd_sc_hd__and3b_2       49
+     sky130_fd_sc_hd__and4_2        48
+     sky130_fd_sc_hd__and4b_2       10
+     sky130_fd_sc_hd__and4bb_2       4
+     sky130_fd_sc_hd__buf_1       2530
+     sky130_fd_sc_hd__buf_2         14
+     sky130_fd_sc_hd__conb_1       106
+     sky130_fd_sc_hd__dfxtp_2     1596
+     sky130_fd_sc_hd__inv_2         64
+     sky130_fd_sc_hd__mux2_2      1445
+     sky130_fd_sc_hd__mux4_2       537
+     sky130_fd_sc_hd__nand2_2      239
+     sky130_fd_sc_hd__nand2b_2       3
+     sky130_fd_sc_hd__nand3_2       24
+     sky130_fd_sc_hd__nand3b_2       4
+     sky130_fd_sc_hd__nor2_2       217
+     sky130_fd_sc_hd__nor2b_2        1
+     sky130_fd_sc_hd__nor3_2        10
+     sky130_fd_sc_hd__nor3b_2        3
+     sky130_fd_sc_hd__nor4_2         2
+     sky130_fd_sc_hd__o2111a_2       2
+     sky130_fd_sc_hd__o2111ai_2      1
+     sky130_fd_sc_hd__o211a_2      152
+     sky130_fd_sc_hd__o211ai_2       3
+     sky130_fd_sc_hd__o21a_2       177
+     sky130_fd_sc_hd__o21ai_2       82
+     sky130_fd_sc_hd__o21ba_2       11
+     sky130_fd_sc_hd__o21bai_2       6
+     sky130_fd_sc_hd__o221a_2       23
+     sky130_fd_sc_hd__o22a_2        67
+     sky130_fd_sc_hd__o2bb2a_2       4
+     sky130_fd_sc_hd__o311a_2        9
+     sky130_fd_sc_hd__o31a_2        11
+     sky130_fd_sc_hd__o31ai_2        7
+     sky130_fd_sc_hd__o32a_2         3
+     sky130_fd_sc_hd__o41a_2        15
+     sky130_fd_sc_hd__or2_2        294
+     sky130_fd_sc_hd__or2b_2        30
+     sky130_fd_sc_hd__or3_2         41
+     sky130_fd_sc_hd__or3b_2        18
+     sky130_fd_sc_hd__or4_2         25
+     sky130_fd_sc_hd__or4b_2         5
+     sky130_fd_sc_hd__or4bb_2        3
+     sky130_fd_sc_hd__xnor2_2       70
+     sky130_fd_sc_hd__xor2_2        37
+
+   Chip area for module '\picorv32': 98792.249600
+
+```
+
+```
+Flop ratio = Number of D Flip flops = 1596  = 0.1721868 or 17.21868%
+             ______________________   _____
+             Total Number of cells    9269
+```
+
+**NOTE:** The order of precedence of the config files in the OpenLANE flow is as follows, with the settings in the highest priority config overriding the values set in the previous config files:  From lowest to highest:
+  * Default OpenLANE config values
+  * openlane/designs/<design-name>/config.tcl
+  * openlane/designs/<design-name>/sky130A_sky130_fd_sc_hd_config.tcl
+
+</details>
+
+<details>
+<summary> Day 2: Good Floorplan Vs Bad Floorplan and Introduction to Library Cells </summary>
+
+### 1. Chip Floor planning considerations
+
+### Utilization factor and Aspect ratio
+
+| ![chipfloorplanning1](/images/PD/chipfloorplanning1.png) | ![chipfloorplanning2](/images/PD/chipfloorplanning2.png) | ![chipfloorplanning3](/images/PD/chipfloorplanning3.png) |
+|:---|:---|:---|
+
+| ![chipfloorplanning4](/images/PD/chipfloorplanning4.png) | ![chipfloorplanning5](/images/PD/chipfloorplanning5.png) | ![chipfloorplanning6](/images/PD/chipfloorplanning6.png) |
+|:---|:---|:---|
+
+  * Define W, H of core and die
+  * Utilization Factor = (Area occupied by netlist)/(Total area of the core)
+    * Usually we aim for 50-60 % Utilization Factor
+  * Aspect Ratio = Height of the core/ Width of the core
+    * When the aspect ratio is 1, the chip is squared in shape
+
+### Preplaced Cells
+
+| ![preplacedcells1](/images/PD/preplacedcells1.png) | ![preplacedcells2](/images/PD/preplacedcells2.png) | ![preplacedcells3](/images/PD/preplacedcells3.png) |
+|:---|:---|:---|
+
+| ![preplacedcells4](/images/PD/preplacedcells4.png) | ![preplacedcells5](/images/PD/preplacedcells5.png) | |
+|:---|:---|:---|
+
+- Pre-placed cells are large, complex modules (e.g., memory blocks, functional units) that are designed separately and positioned in the layout before placement and routing (PnR) begins.
+- These cells are strategically placed to optimize performance, integrate IP blocks, and enhance power efficiency.
+- They are often reused across different designs to save time and maintain consistency.
+- Pre-placed cells occupy fixed positions in the design, as specified by the user, to ensure optimal placement for performance and power distribution.
+- Automated PnR tools handle the placement of the remaining standard logical cells around the pre-placed blocks.
+
+### Decoupling Capacitor
+
+| ![decouplingcap1](/images/PD/decouplingcapacitor1.png) | ![decouplingcap2](/images/PD/decouplingcapacitor2.png) | ![decouplingcap3](/images/PD/decouplingcapacitor3.png) |
+|:---|:---|:---|
+
+| ![decouplingcap4](/images/PD/decouplingcapacitor4.png) | ![decouplingcap5](/images/PD/decouplingcapacitor5.png) | ![decouplingcap6](/images/PD/decouplingcapacitor6.png) |
+|:---|:---|:---|
+
+
+- Stabilize power supply voltage and mitigate noise in integrated circuits (ICs) and printed circuit boards (PCBs).
+- Prevent voltage drops by providing immediate current during switching activities.
+- Act as local reservoirs of electrical charge to handle sudden shifts in current demand.
+- Isolate circuits from the main power supply during switching, ensuring consistent power delivery.
+- Filter out noise and voltage fluctuations, preserving signal integrity.
+- During Switching:
+  - Capacitors discharge to supply current, supporting the circuit when the power rail cannot meet instantaneous demands.
+- During Idle Periods:
+  - The capacitors recharge from the main power source, maintaining readiness for future switching events.
+- Proximity:
+  - Decoupling capacitors are placed as close as possible to power-hungry components (e.g., microprocessors, memory modules).
+- Impact of Placement:
+  - Close placement minimizes inductance and resistance, ensuring efficient energy transfer and reducing impedance.
+- Capacitance Selection:
+  - The capacitance value should align with the current demands and frequency of the circuit.
+  - Higher capacitance enhances noise suppression but may lead to larger physical size and higher costs.
+- Component Protection:
+  - Helps reduce ground disturbances, signal interference, and electromagnetic noise.
+- Pre-placed cells are surrounded by decoupling capacitors to handle switching current demands (di/dt).
+- Capacitors decouple circuits from the main power rail (VDD) to maintain performance stability.
+- They lower power distribution network impedance (Zpdn) for efficient operation across required frequency ranges.
+
+### Power planning
+
+| ![powerplanning1](/images/PD/powerplanning1.png) | ![powerplanning2](/images/PD/powerplanning2.png) | ![powerplanning3](/images/PD/powerplanning3.png) |
+|:---|:---|:---|
+
+| ![powerplanning4](/images/PD/powerplanning4.png) | ![powerplanning5](/images/PD/powerplanning5.png) | ![powerplanning6](/images/PD/powerplanning6.png) |
+|:---|:---|:---|
+
+| ![powerplanning7](/images/PD/powerplanning7.png) | | |
+|:---|:---|:---|
+
+- Ensures even distribution of power (VDD) and ground (GND) connections across the chip.  
+- Guarantees reliable performance and functionality by minimizing voltage fluctuations.  
+- **Efficient Power Delivery:**  
+  - Distributes power uniformly across the integrated circuit (IC).  
+  - Reduces voltage drops, enhancing overall power efficiency.  
+- **Minimization of Ground Bounce:**  
+  - Prevents variations in GND voltage levels caused by transient currents.  
+- **Reduction of Power Supply Noise:**  
+  - Mitigates VDD fluctuations resulting from switching activities.  
+  - Enhances circuit stability and prevents functional errors.  
+- Improves power integrity by reducing localized voltage drops.  
+- Lowers the risk of performance degradation due to noise or transient events.  
+- Enhances the overall reliability and longevity of the chip.  
+- Minimizes the likelihood of functional failures during high-speed switching.  
+- Ensures consistent voltage levels across the IC, optimizing operational efficiency.  
+- Supports better handling of dynamic current demands during circuit operation.
+
+### Pin Placement
+
+| ![pinplacement1](/images/PD/pinplacement1.png) | ![pinplacement2](/images/PD/pinplacement2.png) |
+|:---|:---|
+
+| ![pinplacement3](/images/PD/pinplacement3.png) | ![pinplacement4](/images/PD/pinplacement4.png) |
+|:---|:---|
+
+- Involves determining the location of input/output (I/O) pins on a chip or circuit board.  
+- Crucial for optimizing signal flow, minimizing interference, and simplifying manufacturing and testing processes.  
+- **Signal Integrity:** Ensures signals remain strong and clear as they travel across the chip.  
+- **Power Distribution:** Facilitates even distribution of power to prevent localized voltage drops.  
+- **Thermal Management:** Strategically places pins to aid in heat dissipation.  
+- **Compatibility:** Aligns with standard connectors and packaging requirements for ease of integration.
+- Enhances system reliability and performance.  
+- Simplifies assembly and testing processes.  
+- Improves user experience by ensuring robust design.
+- **Directional Flow:**  
+  - East to West  
+  - North to South  
+  - Combination: East/North to West/South  
+- **Random Ordering:**  
+  - Pin arrangement may be random unless specified otherwise.  
+- Requires coordination between Front-End and Back-End teams to ensure optimal pin placement.  
+- Effective communication prevents design conflicts and ensures smooth integration.  
+- Clock pins are typically larger to minimize net resistance.  
+- Reducing resistance enhances clock signal integrity and minimizes delays.
+
+### Logical Cell placement blockage
+
+- So that no cells are placed by the PnR tool inside the IP blocks/ macro area.
+
+### Lab: Run floorplan using OpenLANE and review the layout in Magic
+
+### Floorplanning: To perform floorplanning
+
+```
+run_floorplan
+```
+
+In the workshop they were mentioning about how to change the FP_IO_HMETAL and FP_IO_VMETAL, however, this was for the old openlane and in the new version it is changed as HLAYER and VLAYER. You can learn all about it [here](https://github.com/The-OpenROAD-Project/OpenLane/blob/master/docs/source/reference/pdk_configuration.md)
+
+![floorplan1](/images/PD/floorplan1.png)
+
+To view the floorplan in magic :
+
+```
+/home/akhilgunda/OpenLane/designs/picorv32a/runs/<LATEST_RUN_FOLDER>/results/floorplan
+
+magic -T /home/akhilgunda/OpenLane/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.nom.lef def read picorv32a.def &
+```
+
+ToDo - Pending
+
+![]()
+![]()
+![]()
+![]()
+
+### 2. Library Binding and Placement
+
+### Placement and Routing
+
+1) Bind netlist with physical cells
+  * Library files: Shape, dimension info, power & timing/ delay info. Various flavors of all available std cells
+
+2) Placement
+  * The location of pre-placed cells are fixed and PnR tools will not place any cells inside that area.
+  * Initial global placement based on the input, output pins to reduce wire lengths
+
+| ![placement1](/images/PD/placement1.png) | ![placement2](/images/PD/placement2.png) | ![placement3](/images/PD/placement3.png) |
+|:---|:---|:---|
+
+3) Optimize placement
+  * Ensure that Signal Integrity is maintained: Estimate the wire length and capacitance and insert repeaters/ buffers. MaxTrans delay/ signal slew
+
+| ![placement4](/images/PD/placement4.png) | ![placement5](/images/PD/placement5.png) | ![placement3](/images/PD/placemen6.png) |
+|:---|:---|:---|
+
+| ![placement7](/images/PD/placement7.png) | ![placement8](/images/PD/placement8.png) | |
+|:---|:---|:---|
+
+4) Congestion aware placement using RePlAce followed by detailed placement using OpenDP.
+  * Global placement: HPWL (Half-Parameter Wire Length) based
+
+| ![placement9](/images/PD/placement9.png) | ![placement10](/images/PD/placement10.png) |
+|:---|:---|
+
+### Lab: Run placement using OpenLANE and review the layout in Magic
+
+### Placement: To perform placement
+
+```
+run_placement
+```
+
+- The `run_placement` command runs the global placement followed by detailed placement.
+- First the global placement happens, where the main objective is to reduce the wire length. Algorithm used is Half-Parameter Wire Length (HPWL).
+- Then detailed placement is performed to legalize the globally placed components.
+
+![placement11](/images/PD/placement11.png)
+
+To view the placement in magic :
+
+```
+/home/akhilgunda/OpenLane/designs/picorv32a/runs/<LATEST_RUN_FOLDER>/results/placement
+
+magic -T /home/akhilgunda/OpenLane/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.nom.lef def read picorv32a.def &
+```
+
+ToDo - Pending
+
+![]()
+![]()
+![]()
+![]()
+
+### 3. Cell design and characterization flows
+
+Library is a place where we get information about every cell. It has differents cells with different size, functionality,threshold voltages. Different stages.
+
+- Inputs : PDKS(process design kit) : DRC & LVS, SPICE Models, library & user-defined specs.
+- Design Steps :Circuit design, Layout design (Art of layout Euler's path and stick diagram), Extraction of parasitics, Characterization (timing, noise, power).
+- Outputs: CDL (circuit description language), LEF, GDSII, extracted SPICE netlist (.cir), timing, noise and power .lib files
+
+| ![celldesign3](/images/PD/celldesign3.png) | ![celldesign4](/images/PD/celldesign4.png) |
+|:---|:---|
+
+| ![celldesign5](/images/PD/celldesign5.png) | ![celldesign1](/images/PD/celldesign1.png) |
+|:---|:---|
+
+1) **Inputs for Cell Design Flow**  
+From foundry, PDKs:  
+  - DRC, LVS rules (eg: lambda-based design rules)
+  - SPICE modelsfor the NMOS & PMOS devices
+  - Library and user-defined specifications
+    - Cell height (separation b/w VDD and GND rails) must be maintained
+    - Cell width is determined by the drive strengths required
+    - Supply voltage
+    - Metal layers requirements
+    - Pin locations
+    - Drawn gate-length
+
+2) **Design Steps**
+- Circuit Design
+  - Transistor sizing based on current drive, voltage transfer and other performance/ quality parameter requirements
+- Layout Design
+  - Art of layout - Euler's path and stick diagram
+- Characterization
+  1) Read the nmos, pmos models
+  2) Read the extracted spice netlist
+  3) Recognize the behaviour of the cell
+  4) Read the sub-circuits
+  5) Attach the power sources
+  6) Apply the stimulus
+  7) Provide the necessary output capacitance
+  8) Provide the necessary simulation commands
+
+- Now, feed in all this to [**GUNA characterization tool**](https://www.paripath.com/Products/Guna)  --> to generate Timing, noise, power .libs, function
+
+3) **Outputs**
+- CDL (Circuit Description Language)
+- GDSII, LEF (dimensions), extracted spice netlist (.cir)
+- Timing, noise, power .libs, function
+
+| ![celldesign6](/images/PD/celldesign6.png) | ![celldesign7](/images/PD/celldesign7.png) | ![celldesign8](/images/PD/celldesign8.png) |
+|:---|:---|:---|
+
+| ![celldesign9](/images/PD/celldesign9.png) | ![celldesign10](/images/PD/celldesign10.png) | ![celldesign11](/images/PD/celldesign11.png) |
+|:---|:---|:---|
+
+| ![celldesign12](/images/PD/celldesign12.png) | ![celldesign13](/images/PD/celldesign13.png) | ![celldesign14](/images/PD/celldesign14.png) |
+|:---|:---|:---|
+
+| ![celldesign15](/images/PD/celldesign15.png) | ![celldesign16](/images/PD/celldesign16.png) |  |
+|:---|:---|:---|
+
+Standard Cell Characterization Flow
+
+A typical standard cell characterization flow that is followed in the industry includes the following steps:
+
+- Read in the models and tech files
+- Read extracted spice Netlist
+- Recognise behavior of the cells
+- Read the subcircuits
+- Attach power sources
+- Apply stimulus to characterization setup
+- Provide neccesary output capacitance loads
+- Provide neccesary simulation commands
+
+Now all these 8 steps are fed in together as a configuration file to a characterization software called GUNA. This software generates timing, noise, power models. These .libs are classified as Timing characterization, power characterization and noise characterization.
+
+| ![celldesign2](/images/PD/celldesign2.png) |
+|:---|
+
+### 4. General timing characterization parameters
+
+In standard cell characterisation, One of the classification of libs is timing characterisation.
+
+### Timing threshold definitions
+
+Timing defintion |	Value
+-------------- | --------------
+slew_low_rise_thr	| 20% value
+slew_high_rise_thr | 80% value
+slew_low_fall_thr |	20% value
+slew_high_fall_thr |	80% value
+in_rise_thr	| 50% value
+in_fall_thr |	50% value
+out_rise_thr |	50% value
+out_fall_thr | 50% value
+
+#### Propagation Delay and Transition Time
+
+**Propagation Delay**
+
+- The time difference between when the transitional input reaches 50% of its final value and when the output reaches 50% of its final value. Poor choice of threshold values lead to negative delay values. Even thought you have taken good threshold values, sometimes depending upon how good or bad the slew, the dealy might be still +ve or -ve.
+- Problematic cases:
+  - Choice of threshold levels
+  - Large RC delays (due to improper designs and/ or large loads, long routes)
+
+```
+Propagation delay = time(out_thr) - time(in_thr)
+```
+
+**Transition Time**
+
+The time it takes the signal to move between states is the transition time , where the time is measured between 10% and 90% or 20% to 80% of the signal levels.
+
+```
+Rise transition time = time(slew_high_rise_thr) - time (slew_low_rise_thr)
+
+Low transition time = time(slew_high_fall_thr) - time (slew_low_fall_thr)
+```
+
+| ![celldesign17](/images/PD/celldesign17.png) |
+|:---|
+
+</details>
+
+<details>
+<summary> Day 3: Design library cell using Magic Layout and ngspice characterization </summary>
+
+### 1. Labs for CMOS inverter ngspice simulations
 
 </details>
