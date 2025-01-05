@@ -3091,12 +3091,8 @@ To view the floorplan in magic :
 magic -T /home/akhilgunda/OpenLane/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.nom.lef def read picorv32a.def &
 ```
 
-ToDo - Pending
-
-![]()
-![]()
-![]()
-![]()
+![magicfloorplan1](/images/PD/magicfloorplan1.png) <br>
+![magicfloorplan2](/images/PD/magicfloorplan2.png)
 
 ### 2. Library Binding and Placement
 
@@ -3149,12 +3145,8 @@ To view the placement in magic :
 magic -T /home/akhilgunda/OpenLane/sky130A/libs.tech/magic/sky130A.tech lef read ../../tmp/merged.nom.lef def read picorv32a.def &
 ```
 
-ToDo - Pending
-
-![]()
-![]()
-![]()
-![]()
+![magicplacement1](/images/PD/magicplacement1.png) <br>
+![magicplacement2](/images/PD/magicplacement2.png)
 
 ### 3. Cell design and characterization flows
 
@@ -3284,4 +3276,211 @@ Low transition time = time(slew_high_fall_thr) - time (slew_low_fall_thr)
 
 ### 1. Labs for CMOS inverter ngspice simulations
 
+### IO Placer revision
+
+In Openlane, PnR is a iterative flow and hence, we can make changes to the environment variables in the fly to observe the changes in our design.
+
+### SPICE deck creation for CMOS inverter
+
+Before performing a SPICE simulation we need to create SPICE Deck SPICE Deck provides information about the following:
+
+- Component connectivity - Connectivity of the Vdd, Vss,Vin, substrate. Substrate tunes the threshold voltage of the MOS.
+- Component values - values of PMOS and NMOS, Output load, Input Gate Voltage, supply voltage.
+- Node Identification and naming - Nodes are required to define the SPICE Netlist
+- Simulation commands
+- Model file - information of parameters related to transistors Simulation of CMOS using different width and lengths. From the waveform, irrespective of switching the shape of it are almost the same.
+
+| ![spice1](/images/PD/spice1.png) | ![spice2](/images/PD/spice2.png) |
+|:---|:---|
+
+### Switching Threshold (Vm)
+
+In physical design, the switching threshold (Vm) is the critical voltage level at which a CMOS inverter transitions between outputting a "0" and a "1". This threshold is essential for defining how efficiently and reliably the inverter operates within a computer chip. Vm impacts the inverter’s performance by influencing signal integrity, noise margins, and overall stability. Maintaining the right Vm ensures proper logic levels and reduces the likelihood of errors during signal transitions.  
+
+To evaluate the behavior of a CMOS inverter, two types of tests are conducted – static and dynamic. Static testing assesses the inverter’s performance under stable conditions, focusing on factors like propagation delay, power consumption, and noise tolerance. Dynamic testing, on the other hand, examines the inverter during active switching to evaluate speed, signal strength, and detect potential issues like glitches. Both tests are crucial for ensuring the CMOS inverter functions accurately and efficiently, contributing to the overall performance and reliability of the chip.
+
+| ![spice3](/images/PD/spice3.png) | ![spice4](/images/PD/spice4.png) |
+|:---|:---|
+
+Through transient analysis, we calculate the rise and fall delays of the CMOS by SPICE Simulation. As we know delays are calculated at 50% of the final values.
+
+### Lab steps to git clone vsdstdcelldesign
+
+First, clone the required mag files and spicemodels of inverter,pmos and nmos sky130.
+```
+
+git clone https://github.com/nickson-jose/vsdstdcelldesign.git
+
+```
+
+To view the layout of the inverter in magic :
+
+```
+
+magic -T ./libs/sky130A.tech sky130_inv.mag &
+
+```
+
+Upon running that command we would be able to see the ```CMOS Inverter``` in magic.
+
+![magicInv](/images/PD/magicInv.png)
+
+### 2. Inception of Layout: CMOS fabrication process (16-Mask CMOS Process)
+
+- The fabrication of an integrated circuit requires a variety of physical and chemical processes performed on a semiconductor substrate. In general, the various processes used to make an IC fall into three categories: film deposition, patterning, and semiconductor doping.
+- Films of both conductors (such as polysilicon, aluminum, copper etc.) and insulators (various forms of silicon dioxide, silicon nitride, and others) are used to connect and isolate transistors and their components.
+- Selective doping of various regions of silicon allow the conductivity of the silicon to be changed.
+- Fundamental to all of these processes is photolithography - the formation of three-dimensional relief images on the substrate for subsequent transfer of the pattern to the substrate [Ref](https://www.lithoguru.com/scientist/lithobasics.html).
+
+The 16-mask CMOS design fabrication process involves several steps to create integrated circuits. Here is a brief description of each step:
+
+- Selecting a substrate with suitable properties
+- Creating Active Region for the transistors
+- N-Well and P-Well Formation
+- Formation of Gate
+- Lightly-Doped Drain (LDD) Formation
+- Source and Drain Formation
+- Formation of Contacts and Local Interconnects
+- Formation of Higher Level Metal Layers
+
+### 1) Selecting a substrate with suitable properties
+
+- The process begins with preparing a silicon wafer, which serves as the substrate for the integrated circuit
+- P-type substrate with high resistivity (5~50ohms)
+- Doping level ($10^{15} cm^{-3}$)
+- Orientation (100)
+- Substrate doping should be less than the well doping.
+
+| ![PSubstrate](/images/CMOS_Process/psubstrate.png) | |
+|:---|:---|
+
+### 2) Creating Active Region for the transistors
+
+- SiO2: Insulator
+- Si3N4: Protection Layer for Local Oxidation of Silicon (Oxide Growth)
+
+| ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion1.png) | ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion2.png) |
+|:---|:---|
+| ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion3.png) | ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion4.png) |
+| ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion5.png) | ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion6.png) |
+| ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion7.png) | ![Creating_ActiveRegion](/images/CMOS_Process/creatingactiveregion8.png) |
+
+### 3) N-Well and P-Well Formation
+
+- The N-well regions are created on the substrate by introducing impurities, typically phosphorus, through ion implantation or diffusion and P-well regions are created using ion implantation or diffusion with boron or other suitable dopants.
+- Energy required for phosphorus ions is more than boron ions due to its size.
+- Ion-implantation is used to further change the channel doping to adjust the threshold voltage, $V_{TH}$ as required.
+
+| ![NWellPWellformation1](/images/CMOS_Process/NWellPWellformation1.png) | ![NWellPWellformation2](/images/CMOS_Process/NWellPWellformation2.png) |
+|:---|:---|
+| ![NWellPWellformation3](/images/CMOS_Process/NWellPWellformation3.png) | ![NWellPWellformation4](/images/CMOS_Process/NWellPWellformation4.png) |
+| ![NWellPWellformation5](/images/CMOS_Process/NWellPWellformation5.png) | ![NWellPWellformation6](/images/CMOS_Process/NWellPWellformation6.png) |
+| ![NWellPWellformation7](/images/CMOS_Process/NWellPWellformation7.png) | ![NWellPWellformation8](/images/CMOS_Process/NWellPWellformation8.png) |
+| ![NWellPWellformation9](/images/CMOS_Process/NWellPWellformation9.png) | ![NWellPWellformation10](/images/CMOS_Process/NWellPWellformation10.png) |
+| ![NWellPWellformation11](/images/CMOS_Process/NWellPWellformation11.png) | ![NWellPWellformation12](/images/CMOS_Process/NWellPWellformation12.png) |
+| ![NWellPWellformation13](/images/CMOS_Process/NWellPWellformation13.png) | ![NWellPWellformation14](/images/CMOS_Process/NWellPWellformation14.png) |
+
+### 4) Formation of Gate
+
+| ![gateformation1](/images/CMOS_Process/gateformation1.png) | ![gateformation2](/images/CMOS_Process/gateformation2.png) |
+|:---|:---|
+| ![gateformation3](/images/CMOS_Process/gateformation3.png) | ![gateformation4](/images/CMOS_Process/gateformation4.png) |
+| ![gateformation5](/images/CMOS_Process/gateformation5.png) | ![gateformation6](/images/CMOS_Process/gateformation6.png) |
+| ![gateformation7](/images/CMOS_Process/gateformation7.png) | ![gateformation8](/images/CMOS_Process/gateformation8.png) |
+| ![gateformation9](/images/CMOS_Process/gateformation9.png) | ![gateformation10](/images/CMOS_Process/gateformation10.png) |
+| ![gateformation11](/images/CMOS_Process/gateformation11.png) | ![gateformation12](/images/CMOS_Process/gateformation12.png) |
+| ![gateformation13](/images/CMOS_Process/gateformation13.png) | ![gateformation14](/images/CMOS_Process/gateformation14.png) |
+
+### 5) Lightly-Doped Drain (LDD) Formation
+
+- LDD is formed to prevent hot electron effect and short channel effects.
+  - PMOS Doping profile: P+, P-, N
+  - NMOS doping profile: N+, N-, P
+
+- Hot Electron Effect
+  - When device size reduces, the electric field in the channel, $E = V/d$ also increases, and the energy of electron and holes attains tremendous become high enough to break si-si bonds leading to some more addition of electron and holes.
+  - Their enegry might be so high that it crosses 3.2eV barrier between Si conduction band and SiO2 conduction band. If it crosses this band it might enters into oxide layer which is present above substate cause reliability issues.
+
+- Short Channel Effects
+  - WHen device size reduces, the drain field starts to penetrate into the channel and thus reducing the controlling effect of the Gate terminal voltage on the Drain current.
+
+- Nowadays, the Source/Drain Extension is used to mitigate the effects of short channel effects.
+
+| ![lddformation1](/images/CMOS_Process/lddformation1.png) | ![lddformation2](/images/CMOS_Process/lddformation2.png) |
+|:---|:---|
+| ![lddformation3](/images/CMOS_Process/lddformation3.png) | ![lddformation4](/images/CMOS_Process/lddformation4.png) |
+| ![lddformation5](/images/CMOS_Process/lddformation5.png) | ![lddformation6](/images/CMOS_Process/lddformation6.png) |
+| ![lddformation7](/images/CMOS_Process/lddformation7.png) | ![lddformation8](/images/CMOS_Process/lddformation8.png) |
+| ![lddformation9](/images/CMOS_Process/lddformation9.png) | ![lddformation10](/images/CMOS_Process/lddformation10.png) |
+
+### 6) Source and Drain Formation
+
+| ![sourcedrainformation1](/images/CMOS_Process/sourcedrainformation1.png) | ![sourcedrainformation2](/images/CMOS_Process/sourcedrainformation2.png) |
+|:---|:---|
+| ![sourcedrainformation3](/images/CMOS_Process/sourcedrainformation3.png) | ![sourcedrainformation4](/images/CMOS_Process/sourcedrainformation4.png) |
+| ![sourcedrainformation5](/images/CMOS_Process/sourcedrainformation5.png) | ![sourcedrainformation6](/images/CMOS_Process/sourcedrainformation6.png) |
+| ![sourcedrainformation7](/images/CMOS_Process/sourcedrainformation7.png) | ![sourcedrainformation8](/images/CMOS_Process/sourcedrainformation8.png) |
+
+### 7) Formation of Contacts and Local Interconnects
+
+| ![contactslocalinterconnectformation1](/images/CMOS_Process/contactslocalinterconnectformation1.png) | ![contactslocalinterconnectformation2](/images/CMOS_Process/contactslocalinterconnectformation2.png) |
+|:---|:---|
+| ![contactslocalinterconnectformation3](/images/CMOS_Process/contactslocalinterconnectformation3.png) | ![contactslocalinterconnectformation4](/images/CMOS_Process/contactslocalinterconnectformation4.png) |
+| ![contactslocalinterconnectformation5](/images/CMOS_Process/contactslocalinterconnectformation5.png) | ![contactslocalinterconnectformation6](/images/CMOS_Process/contactslocalinterconnectformation6.png) |
+| ![contactslocalinterconnectformation7](/images/CMOS_Process/contactslocalinterconnectformation7.png) | ![contactslocalinterconnectformation8](/images/CMOS_Process/contactslocalinterconnectformation8.png) |
+| ![contactslocalinterconnectformation9](/images/CMOS_Process/contactslocalinterconnectformation9.png) | ![contactslocalinterconnectformation10](/images/CMOS_Process/contactslocalinterconnectformation10.png) |
+| ![contactslocalinterconnectformation11](/images/CMOS_Process/contactslocalinterconnectformation11.png) | ![contactslocalinterconnectformation12](/images/CMOS_Process/contactslocalinterconnectformation12.png) |
+| ![contactslocalinterconnectformation13](/images/CMOS_Process/contactslocalinterconnectformation13.png) | |
+
+### 8) Formation of Higher Level Metal Layers
+
+| ![higherlevelmetalformation1](/images/CMOS_Process/higherlevelmetalformation1.png) | ![higherlevelmetalformation2](/images/CMOS_Process/higherlevelmetalformation2.png) |
+|:---|:---|
+| ![higherlevelmetalformation3](/images/CMOS_Process/higherlevelmetalformation3.png) | ![higherlevelmetalformation4](/images/CMOS_Process/higherlevelmetalformation4.png) |
+| ![higherlevelmetalformation5](/images/CMOS_Process/higherlevelmetalformation5.png) | ![higherlevelmetalformation6](/images/CMOS_Process/higherlevelmetalformation6.png) |
+| ![higherlevelmetalformation7](/images/CMOS_Process/higherlevelmetalformation7.png) | ![higherlevelmetalformation8](/images/CMOS_Process/higherlevelmetalformation8.png) |
+| ![higherlevelmetalformation9](/images/CMOS_Process/higherlevelmetalformation9.png) | ![higherlevelmetalformation10](/images/CMOS_Process/higherlevelmetalformation10.png) |
+| ![higherlevelmetalformation11](/images/CMOS_Process/higherlevelmetalformation11.png) | ![higherlevelmetalformation12](/images/CMOS_Process/higherlevelmetalformation12.png) |
+| ![higherlevelmetalformation13](/images/CMOS_Process/higherlevelmetalformation13.png) | ![higherlevelmetalformation14](/images/CMOS_Process/higherlevelmetalformation14.png) |
+| ![higherlevelmetalformation15](/images/CMOS_Process/higherlevelmetalformation15.png) | ![higherlevelmetalformation17](/images/CMOS_Process/higherlevelmetalformation17.png) |
+| ![higherlevelmetalformation18](/images/CMOS_Process/higherlevelmetalformation18.png) | ![higherlevelmetalformation19](/images/CMOS_Process/higherlevelmetalformation19.png) |
+| ![higherlevelmetalformation20](/images/CMOS_Process/higherlevelmetalformation20.png) | |
+
+### 9) Final Wafer after Fabrication
+
+| ![higherlevelmetalformation21](/images/CMOS_Process/higherlevelmetalformation21.png) |
+|:---|
+
+### Lab: Introduction to Sky130 basic layers layout and LEF using inverter
+
+- Clone a custom standard cell design from the following github repo for this exercise
+  [https://github.com/nickson-jose/vsdstdcelldesign.git](https://github.com/nickson-jose/vsdstdcelldesign.git)
+- To open the design in magic: `magic -T sky130A.tech sky130_inv.mag`
+- Get familiarized with the different layers in sky130 technology, refer the github link.
+- To get the details about any drawn element in the layout, hover the mouse pointer over it and press `s` to select it (pressing multiple times selects the elements hierarchically).
+  Then, from the **tkcon shell**, use the command `what` to print the details: <br>
+
+**sky130 Layers in Magic for an Inverter** <br>  
+
+|![Magicsky130Layers1](/images/PD/Magicsky130Layers1.png) |
+|:---|
+
+### Library exchange format (.lef)
+
+- The layout of a design is defined in a specific file called LEF. It includes design rules (tech LEF) and abstract information about the cells.
+  - ```Tech LEF``` -  Technology LEF file contains information about the Metal layer, Via Definition and DRCs.
+  - ```Macro LEF``` -  Contains physical information of the cell such as its Size, Pin, their direction.
+
+### Lab: Create the Inverter Standard Cell layout and extract the SPICE netlist
+
 </details>
+
+<details>
+
+<summary>Day 4: Pre-layout timing analysis and importance of good clock tree</summary>
+
+## 1. Timing modelling using delay tables
+
+### Lab steps to convert grid info to track info
+
+</deatils>
