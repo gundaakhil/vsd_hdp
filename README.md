@@ -3473,11 +3473,306 @@ The 16-mask CMOS design fabrication process involves several steps to create int
 
 ### Lab: Create the Inverter Standard Cell layout and extract the SPICE netlist
 
+- The steps to layout a custom inverter standard cell in Magic is explained in this github repo: [vsdstdcelldesign](https://github.com/nickson-jose/vsdstdcelldesign?tab=readme-ov-file#standard-cell-layout-design-in-magic)
+  - Magic has an interactive DRC engine - DRC violations are updated continuously in Magic every time we make a change (draw, erase, move) in the layout.
+  - When we make small changes to an existing layout, we can find out immediately if we have introduced errors, without having to completely recheck the entire layout.
+
+- To extract the SPICE netlist of the layout including the parasitics, switch to the **tkcon shell** of Magic:
+  
+```
+extract all
+ext2spice cthresh 0 rthresh 0
+ext2spice
+```
+
+![ngspiceextract](/images/PD/ngspiceextract.png)
+
+### Lab: Create a SPICE deck to run a simple transient simulation using ngspice
+
+- Open the extracted netlist and correct the following:
+  - Ensure the Scaling: Open the layout in magic, enable the grid (Window menu -> Grid on), and zoom in to select one unit box. Find its dimensions by the command `box` from the **tkcon shell**
+  - Include the SPICE models for sky130 short-channel PMOS and NMOS.
+  - Change the PMOS and NMOS model names to match the ones in the included model files - `pshort_model.0, nshort_model.0`.
+- Modify the spice file to run a sample transient simulation using ngspice:
+  - Add VDD and GND:
+
+```
+VDD VPWR 0 3.3V
+VSS VGND 0 0V
+```
+
+  - Add a pulse source to the input node: `Va A VGND PULSE(0V 3.3V 0 0.1ns 0.1ns 2ns 4ns)`
+  - Transient simulation: `.tran 1n 20n`
+  - Since we are using the separate NMOS and PMOS models and not the sub-circuits from the lib files, modify the instance names to M0 and M1
+
+The extracted spice list has to be modified as shown below to use ngspice to perform simulation:
+
+```
+* SPICE3 file created from sky130_inv.ext - technology: sky130A
+
+.option scale=0.01u
+.include ./libs/pshort.lib
+.include ./libs/nshort.lib
+
+//.subckt sky130_inv A Y VPWR VGND
+M1000 Y A VGND VGND nshort_model.0 w=35 l=23
++  ad=1.44n pd=0.152m as=1.37n ps=0.148m
+M1001 Y A VPWR VPWR pshort_model.0 w=37 l=23
++  ad=1.44n pd=0.152m as=1.52n ps=0.156m
+
+VDD VPWR 0 3.3V
+VSS VGND 0 0V
+Va A VGND PULSE(0V 3.3V 0 0.1ns 0.1ns 2ns 4ns)
+
+C0 A VPWR 0.0774f
+C1 VPWR Y 0.117f
+C2 A Y 0.0754f
+C3 Y VGND 2f
+C4 A VGND 0.45f
+C5 VPWR VGND 0.781f
+//.ends
+
+.tran 1n 20n
+.control
+run
+.endc
+.end
+```
+
+To simulate the spice netlist type the following command in the terminal:
+
+```
+
+ngspice sky130_inv.spice
+
+```
+
+![ngspice1](/images/PD/ngspice1.png)
+
+To plot the wave form type
+
+```
+
+plot y vs time a
+
+```
+
+![ngspice2](/images/PD/ngspice2.png)
+
+- Characterization of the inverter standard cell depends on four timing parameters
+  - **Rise Transition**: Time taken for the output to rise from 20% to 80% of max value
+  - **Fall Transition**: Time taken for the output to fall from 80% to 20% of max value
+  - **Cell Rise delay**: difference in time(50% output rise) to time(50% input fall)
+  - **Cell Fall delay**: difference in time(50% output fall) to time(50% input rise)
+
+### Lab: Introduction to (Skywater) DRC using Magic tool
+
+The lab work includes
+
+- In-depth overview of Magic's DRC engine
+- Introduction to Google/Skywater DRC rules
+- Lab : Warm-up exercise : Fixing a simple rule error
+- Lab : Main exercie : Fixing or create a complex error
+- Obtain the tutorial files for DRC labs from the following link:
+```
+wget http://opencircuitdesign.com/open_pdks/archive/drc_tests.tgz
+tar xfz drc_tests.tgz
+```
+- The Design Rules for Skywater 130nm technology can be found here: [**https://skywater-pdk.readthedocs.io/en/main/rules.html**](https://skywater-pdk.readthedocs.io/en/main/rules.html) and [**https://github.com/google/skywater-pdk**](https://github.com/google/skywater-pdk)
+- Magic: [here](http://opencircuitdesign.com/)
+
+### DRC Lab 1: met3.mag
+
+- To launch Magic with OpenGL or Cairo graphical interfaces, use the `-d` flag:  
+  - For OpenGL: `magic -d XR &`  
+  - For Cairo: `magic -d OGL &`  
+
+- Open the tutorial file `met3.mag` in Magic through the command line or via the GUI by selecting **File -> Open...**  
+
+- To inspect DRC (Design Rule Check) errors for a specific region:  
+  - Use the left and right mouse buttons to position the cursor box around the desired area.  
+  - Without exiting the main layout interface, press `:` to bring up the **tkcon console** and input the necessary command.  
+  - For example, to check the DRC error for the `m3.2` area, position the cursor box and type: `:drc why`  
+  - The **console** will then display the violated DRC rule.
+
+**Rule M3.2: Spacing of metal 3 to metal 3 - 0.300µm** <br>  
+
+|![DRClab1](/images/PD/DRCLab1.png) |
+|:---|
+
+- Vias in Magic are treated as derived layers. The drawn via represents a region filled with contact cuts, although the actual contact cuts (which correspond to the VIA2 mask layer in the GDS output) are not directly visible in the layout view. These cuts are generated based on CIF output rules in the technology file.  
+  - To create an M3 contact area, enclose a region using the cursor box (left and right mouse buttons), hover over the `m3contact` icon on the sidebar, and click the middle mouse button (or press the `p` key).  
+  - Alternatively, after defining the desired area with the cursor box, use the command: `paint m3contact`.  
+  - To visualize the M3 contact cuts, enter `:cif see VIA2` in the layout window.  
+  This visualization, known as a **feedback entry**, can be removed with the command: `feedback clear`.  
+  - As a note, such rules are inherently accurate. To verify them, measure the distance from the contact cut to the M3 contact boundary by drawing a cursor box.  
+  - To align the cursor box precisely with the via edge in CIF view, use the command: `snap int`.
+  
+|![DRClab2](/images/PD/DRCLab2.png) |
+|:---|
+
+### DRC Lab 2: poly.mag - Exercise to fix poly.9 error in Sky130 tech-file
+ 
+- **[poly.9](https://skywater-pdk.readthedocs.io/en/main/rules/periphery.html#poly)**: The required spacing for poly resistors to poly or their distance (without overlap) to diffusion/tap must be 0.480 µm.  
+- This task focuses on addressing an incomplete DRC rule in the `sky130A.tech` file.  
+- The section below violates the poly.9 DRC rule but isn't flagged as an error because the rule is only partially defined in the `sky130A.tech` file.  
+
+**Rule poly.9: Poly resistor spacing to poly or diffusion/tap (without overlap) must be 0.480 µm**  
+
+|![DRClab3](/images/PD/DRCLab3.png) |
+|:---|
+
+- In the `sky130A.tech` file:  
+  - Spacing rules for poly resistors relative to alldiffusion and nsd (nsubstratediff or N-tap) are already implemented. However, the spacing rules for poly resistors to poly are missing and need to be added. 
+
+  | **sky130A.tech** | |
+  |:---|:---|
+  | ![DRClab4](/images/PD/DRCLab4.png) | ![DRClab5](/images/PD/DRCLab5.png) |
+
+  - By examining the aliases, we can identify a definition for `allpolyres` as:  
+    `allpolyres mrp1,xhrpoly,uhrpoly,rmp`  
+
+  - To implement the missing poly.9 spacing rules, add the following lines in the appropriate sections of the tech file:  
+
+  ```  
+  spacing npres allpolynonres 480 touching_illegal \  
+          "poly.resistor spacing to poly < %d (poly.9)"  
+
+  spacing xhrpoly,uhrpoly,xpc allpolynonres 480 touching_illegal \  
+        "xhrpoly/uhrpoly resistor spacing to poly < %d (poly.9)"  
+  ```  
+
+  - After making these changes, reload the tech file by running the following in the console:  
+    `tech load sky130A.tech`  
+  - Perform a new DRC check by executing:  
+    `drc check`  
+
+**The Magic DRC engine will now highlight the poly resistor to poly spacing violations**  
+
+|![DRClab6](/images/PD/DRCLab6.png) |
+|:---|
+
+### DRC Lab 3: Poly.mag – Poly Resistor Spacing to Diffusion and Tap
+
+- The modifications made to address the poly.9 DRC rule are not fully comprehensive. This can be verified by duplicating the three resistor types—**npolyres, ppolyres,** and **xhrpolyres**.  
+
+- Next, place **ndiffusion, pdiffusion, nsubstratendiff,** and **psubstratepdiff** around the duplicated poly resistors, as illustrated.  
+
+- Additionally, draw an **nwell** beneath the **pdiffusion** and **N-tap (nsubstratendiff)** to prevent unnecessary DRC errors related to diffusion. These errors are not the focus of this task.  
+
+- Upon inspection of the layout, DRC spacing violations are observed for all poly resistors except for **npolyres**. The **npolyres** only flags a spacing violation concerning the **N-tap**.  
+
+- To resolve this, adjust the **npres** spacing rule to account for all diffusion layers rather than limiting it to **nsd (nsubstratediff)** alone.
+
+| Before |
+|:---|
+|  <pre>spacing npres *nsd 480 touching_illegal \ <br>   "poly.resistor spacing to N-tap < %d (poly.9)"</pre> |
+| ![DRClab7](/images/PD/DRCLab7.png) |
+| **After** |
+| <pre>spacing npres alldiff 480 touching_illegal \ <br>   "poly.resistor spacing to N-tap < %d (poly.9)"</pre> |
+| ![DRClab8](/images/PD/DRCLab8.png) |
+
+### DRC Lab 4: nwell.mag - Challenge exercise to describe DRC error as geometrical construct
+
+- **Reference**: [SkyWater PDK Documentation – Nwell Rules](https://skywater-pdk.readthedocs.io/en/main/rules/periphery.html#nwell)  
+- **nwell.5**: Deep nwell must be enclosed by nwell by at least **0.400µm**.  
+  *Exemptions apply within UHVI or areaid.lw. Nwells may merge over deep nwell if spacing is too small, as outlined in rule nwell.2.*  
+- **nwell.6**: Minimum enclosure of nwell hole by deep nwell outside UHVI – **1.030µm**.  
+- Relevant DRC rules in `sky130A.tech` file
+
+  | ![DRClab9](/images/PD/DRCLab9.png) | ![DRClab10](/images/PD/DRCLab10.png) |
+  |:---|:---|
+
+### Key Points from sky130A.tech DRC File:  
+- The DRC layers in `cifoutput` style are defined as **templayers** rather than actual physical layers.  
+
+- **nwell_missing dnwell**:  
+  - This **templayer** relies on another layer—**dnwell_shrink**—defined earlier in the tech file:
+
+```
+templayer dnwell_shrink dnwell
+shrink 1030
+```  
+
+  - This command shrinks the deep nwell by **1.03µm**, representing the minimum overlap required between nwell and deep nwell internally. The result highlights the largest possible open space within the deep nwell area.  
+
+- **nwell_missing** expands from the **dnwell** by **400nm**:
+
+```
+grow 400
+```
+
+  - This command generates the minimum required nwell area to enclose the deep nwell.  
+
+- **and-not dnwell_shrink**:
+  - This creates a ring of overlap that highlights areas where nwell must exist to meet both internal overlap and external enclosure requirements. If any portion of this area lacks nwell, a violation is flagged.  
+
+- **and-not nwell**:  
+  - Any remaining area that violates the rule is passed to the **cifmaxwidth** rule for the deep nwell layer.  
+
+### Running DRC Checks for nwell.6
+1. Position the cursor over the **nwell.6** layout.
+2. Execute the following commands to visualize errors:  
+    ```
+    cif ostyle drc
+    cif see dnwell_shrink
+    feed clear
+    cif see nwell_missing
+    ```  
+### Visual Breakdown
+| **nwell.6 Layout**  | **dnwell_shrink Visualization**  |
+|:---:|:---:|  
+| ![DRClab11](/images/PD/DRCLab11.png)  | ![DRClab12](/images/PD/DRCLab12.png)  |  
+| **nwell_missing Visualization**  |  |  
+| ![DRClab13](/images/PD/DRCLab13.png)  |  |
+
+### Important Considerations
+
+- **Edge-Based Rules**:
+  - Although **cifoutput** operators can define edge-based rules, generating layers this way can demand high computational resources.  
+  - To maintain Magic’s performance, reserve complex geometric rules for separate **style variants** that can be selectively applied, preventing unnecessary slowdowns during interactive layout.  
+
+- **DRC Rule Styles in sky130A.tech**:  
+  - **drc fast**: Optimized for backend metal layers and large digital designs. Avoids lower-layer checks.  
+  - **drc full**: Performs comprehensive checks across all layers. Suitable for smaller designs but may slow down large layouts.  
+
+- **Switching DRC Modes**:
+
+```
+drc style drc(fast)
+drc style drc(full)
+```  
+
+### DRC Lab 5: nwell.mag - Challenge  to find missing or incorrect rules and fix them
+
+- **nwell.4**: All n-wells will contain metal-contacted tap (rule checks only for licon on tap) . Rule exempted from high voltage cells inside UHVI.
+- Every nwell must have an n-tap layer contact inside it, which is called `nsubstratencontact` or `nsc`.
+- Since there is no distance/ spacing associated with this rule, it is not possible to write this as an edge-based DRC rule. But it can be written as a cifoutput rule.
+  - To the NWELL rules section, add the following cifoutput rule:
+
+```
+  variant (full)   # -> Run this rule only for drc(fast) style
+  cifmaxwidth nwell_untapped 0 bend_illegal \
+          "N-well missing tap (nwell.4))"
+  variant *        # -> Run the rules below for all styles, unless explicitly specified
+```
+
+  - Now, in the style drc section, define the following templayers:
+
+```
+templayer nwell_tapped           # Create a templayer nwell_tapped
+bloat-all nsc nwell              # that takes all nsc layers and expand it to fill any nwell underneath it
+templayer nwell_untapped nwell   # Now, create a second templayer nwell_untapped that starts with allnwell geometries
+and-not nwell_tapped             # and subtract all nwell_tapped geometries
+```
+
+| **untapped nwell being flagged for DRC violation. <br>**  ![DRClab14](/images/PD/DRCLab14.png) | **tapped nwell showing no DRC violation.** <br>  ![DRClab15](/images/PD/DRCLab15.png) |
+|:---|:---|
+
 </details>
 
 <details>
-
-<summary>Day 4: Pre-layout timing analysis and importance of good clock tree</summary>
+<summary> Day 4: Pre-layout timing analysis and importance of good clock tree</summary>
 
 ## 1. Timing modelling using delay tables
 
