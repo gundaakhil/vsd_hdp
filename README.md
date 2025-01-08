@@ -3778,4 +3778,117 @@ and-not nwell_tapped             # and subtract all nwell_tapped geometries
 
 ### Lab steps to convert grid info to track info
 
+**Objective**: Generate a LEF file for the custom standard cell `sky130_inv.mag` and integrate it into the OpenLANE flow.  
+
+**Overview**:
+
+- From a Place and Route (PnR) perspective, the key requirements are to define the PnR boundary of the standard cell, establish the power and ground rails, and accurately place the input and output ports. The LEF (Library Exchange Format) file encapsulates all this essential information.  
+
+**Layout Guidelines**:
+
+- **Port Alignment**: Input and output ports must align precisely with the intersections of vertical and horizontal tracks.
+- **Cell Width**: The width of the standard cell should be an odd multiple of the track pitch.  
+- **Cell Height**: The height must align with a multiple of the vertical track pitch.  
+
+**Track Information**:  
+
+- Tracks are essential during routing as they define the permissible paths for signal connections.  
+- Details about track configurations for local interconnects and various metal layers are specified in the file:  
+
+```
+/sky130A/libs.tech/openlane/sky130_fd_sc_hd/tracks.info
+```  
+
+![trackinfo](/images/PD/trackinfo.png)
+
+- To ensure the ports lie on the point we open up TkCon and write the following
+
+```
+grid 0.46um 0.34um 0.23um 0.17um
+```
+
+![grid](/images/PD/grid.png)
+
+**Port Definition and Attribute Setup**:  
+Before extracting the LEF file, ports must be defined, and attributes for class and usage must be assigned.  
+
+**Steps to Define Ports**:  
+
+1. For each layer requiring port creation, draw a box over the desired layer. Label the box with the port name and apply a sticky label with the corresponding layer name.
+
+  - Ensure the "Port enable" checkbox is selected while the "Default" option remains unchecked.  
+
+| A                                                                                        |   Y       |
+| --------------------------------------------------------------------------------------------| ------------- |
+| ![grid](/images/PD/portA.JPG)  | ![grid](/images/PD/portY.JPG) |
+
+| VPWR                                                                                        |   VGND        |
+| --------------------------------------------------------------------------------------------| ------------- |
+| ![grid](/images/PD/portVPWR.JPG)  | ![grid](/images/PD/portVGND.JPG) |
+
+## Set port class and port use attributes for a layout
+
+2. Assign port class and port use attributes. These attributes align with the LEF/DEF (Design Exchange Format) conventions and are critical for reading and writing macro cell pins.
+
+  - **Port Class Options**: `default, input, output, tristate, bidirectional, inout, feedthrough, feedthru`  
+  - **Port Use Options**: `default, analog, signal, digital, power, ground, clock`  
+  - Assign attributes through the tkcon console window after selecting each port in the layout view:
+
+```
+# Example for ports A and Y
+port class input
+port use signal
+
+# Example for power and ground ports
+port class inout
+port use power
+```  
+
+![grid](/images/PD/port_class_use.JPG)
+
+3. You can delete or remove any port by first selecting the port (key s) and then executing below two commands in order (in tkcon window):
+
+```
+port remove
+label erase
+```
+
+**LEF File Extraction**:  
+
+- Once ports and attributes are correctly configured, generate the LEF file by executing the following command in the console window:  
+
+```
+lef write
+```
+
+![lefwrite](/images/PD/lefwrite.png)
+
+</deatils>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<details>
+<summary> Day 5: Final steps for RTL2GDS using tritonRoute and openSTA </summary>
+
+## 1.
+
+###
+
 </deatils>
