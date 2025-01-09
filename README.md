@@ -3776,7 +3776,7 @@ and-not nwell_tapped             # and subtract all nwell_tapped geometries
 
 ## 1. Timing modelling using delay tables
 
-### Lab steps to convert grid info to track info
+### Lab: Steps to convert grid info to track info
 
 **Objective**: Generate a LEF file for the custom standard cell `sky130_inv.mag` and integrate it into the OpenLANE flow.  
 
@@ -3863,32 +3863,526 @@ lef write
 
 ![lefwrite](/images/PD/lefwrite.png)
 
-</deatils>
+### Lab: Adding the extracted LEF file into OpenLANE flow for picorv32a design
 
+To integrate the custom inverter cell `sky130_vsdinv` into the OpenLANE flow, follow these steps to ensure seamless configuration and execution:
 
+**1. Copy LEF File:**  
 
+- Transfer the LEF file to the `openlane/designs/picorv32a/src` directory.  
 
+**2. Characterization and Library Integration:** 
 
+- The custom cell `sky130_vsdinv` has already undergone characterization and has been incorporated into the `sky130_fd_sc_hd__*.lib` files.  
+- Download the timing library files that include the characterization data for `sky130_vsdinv` and place them in the `openlane/designs/picorv32a/src` directory.  
 
+**3. Configuration Update:**  
 
+- Modify the `config.tcl` file to ensure the flow utilizes the updated timing library and LEF files.  
+- Set the appropriate PDK configuration variables to reference the newly added timing libraries for synthesis and static timing analysis (STA).  
+- Register the inverter macro LEF file by configuring the EXTRA_LEF variable as follows:  
 
+```
+set ::env(LIB_SYNTH) $::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__typical.lib
+set ::env(LIB_SLOWEST) $::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__slow.lib
+set ::env(LIB_FASTEST) $::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__fast.lib
+set ::env(LIB_TYPICAL) $::env(OPENLANE_ROOT)/designs/picorv32a/src/sky130_fd_sc_hd__typical.lib
 
+set ::env(EXTRA_LEFS) [glob $::env(OPENLANE_ROOT)/designs/$::env(DESIGN_NAME)/src/*.lef]
+```  
 
+**4. Merging LEF Files into the Flow:**  
 
+- Launch OpenLANE in interactive mode. After executing `prep -design picorv32a`, merge the LEF files by running the following commands:  
 
+```
+prep -design picorv32a -tag <RUB_FOLDER> -overwrite 
+set lefs [glob $::env(DESIGN_DIR)/src/*.lef]
+add_lefs -src $lefs
+run_synthesis
+```  
 
+**5. Verification:**
 
+- Upon synthesis, verify that `sky130_vsdinv` has been instantiated. For reference, the synthesis results show that the inverter is instantiated 68 times.  
 
+```
 
+63. Printing statistics.
 
+=== picorv32a ===
 
+   Number of wires:               8931
+   Number of wire bits:           9313
+   Number of public wires:        1512
+   Number of public wire bits:    1894
+   Number of memories:               0
+   Number of memory bits:            0
+   Number of processes:              0
+   Number of cells:               9211
+     sky130_fd_sc_hd__a2111o_2       3
+     sky130_fd_sc_hd__a211o_2       82
+     sky130_fd_sc_hd__a211oi_2      10
+     sky130_fd_sc_hd__a21bo_2       29
+     sky130_fd_sc_hd__a21boi_2       3
+     sky130_fd_sc_hd__a21o_2       251
+     sky130_fd_sc_hd__a21oi_2      136
+     sky130_fd_sc_hd__a221o_2      102
+     sky130_fd_sc_hd__a221oi_2       2
+     sky130_fd_sc_hd__a22o_2       196
+     sky130_fd_sc_hd__a2bb2o_2       9
+     sky130_fd_sc_hd__a311o_2        6
+     sky130_fd_sc_hd__a311oi_2       1
+     sky130_fd_sc_hd__a31o_2       108
+     sky130_fd_sc_hd__a31oi_2        5
+     sky130_fd_sc_hd__a32o_2        32
+     sky130_fd_sc_hd__a41o_2         7
+     sky130_fd_sc_hd__a41oi_2        1
+     sky130_fd_sc_hd__and2_2       132
+     sky130_fd_sc_hd__and2b_2       49
+     sky130_fd_sc_hd__and3_2       105
+     sky130_fd_sc_hd__and3b_2       42
+     sky130_fd_sc_hd__and4_2        45
+     sky130_fd_sc_hd__and4b_2        7
+     sky130_fd_sc_hd__and4bb_2       5
+     sky130_fd_sc_hd__buf_1       2484
+     sky130_fd_sc_hd__buf_2         23
+     sky130_fd_sc_hd__conb_1       106
+     sky130_fd_sc_hd__dfxtp_2     1596
+     sky130_fd_sc_hd__inv_2          2
+     sky130_fd_sc_hd__mux2_2      1489
+     sky130_fd_sc_hd__mux4_2       525
+     sky130_fd_sc_hd__nand2_2      241
+     sky130_fd_sc_hd__nand2b_2       5
+     sky130_fd_sc_hd__nand3_2       16
+     sky130_fd_sc_hd__nand3b_2       5
+     sky130_fd_sc_hd__nor2_2       240
+     sky130_fd_sc_hd__nor2b_2        5
+     sky130_fd_sc_hd__nor3_2         8
+     sky130_fd_sc_hd__nor3b_2        3
+     sky130_fd_sc_hd__nor4_2         1
+     sky130_fd_sc_hd__nor4b_2        1
+     sky130_fd_sc_hd__o2111a_2       2
+     sky130_fd_sc_hd__o2111ai_2      1
+     sky130_fd_sc_hd__o211a_2      134
+     sky130_fd_sc_hd__o211ai_2       6
+     sky130_fd_sc_hd__o21a_2       142
+     sky130_fd_sc_hd__o21ai_2      126
+     sky130_fd_sc_hd__o21ba_2        6
+     sky130_fd_sc_hd__o21bai_2       6
+     sky130_fd_sc_hd__o221a_2       32
+     sky130_fd_sc_hd__o22a_2        65
+     sky130_fd_sc_hd__o22ai_2        1
+     sky130_fd_sc_hd__o2bb2a_2       2
+     sky130_fd_sc_hd__o311a_2       11
+     sky130_fd_sc_hd__o31a_2        21
+     sky130_fd_sc_hd__o31ai_2        5
+     sky130_fd_sc_hd__o32a_2         5
+     sky130_fd_sc_hd__o41a_2         8
+     sky130_fd_sc_hd__or2_2        285
+     sky130_fd_sc_hd__or2b_2        18
+     sky130_fd_sc_hd__or3_2         34
+     sky130_fd_sc_hd__or3b_2        15
+     sky130_fd_sc_hd__or4_2         22
+     sky130_fd_sc_hd__or4b_2         8
+     sky130_fd_sc_hd__or4bb_2        4
+     sky130_fd_sc_hd__xnor2_2       42
+     sky130_fd_sc_hd__xor2_2        24
+     sky130_vsdinv                  68
 
+   Chip area for module '\picorv32a': 98056.544000
+
+```
+
+![placementstdinv](/images/PD/stdinvflow.png)
+
+**6. Important Notes:**  
+
+- A known issue arises during the `run_floorplan` process, where the following error occurs: `Cannot find any macros in the design`
+- This error is triggered when the function `basic_macro_placement` is invoked by `run_floorplan`. The process ultimately calls `openroad ./scripts/openroad/or_basic_mpl.tcl`, which leads to the error through the `macro_placement` command.  
+- The specific reason behind the error remains unclear. As a workaround, manually execute the `run_floorplan` command by invoking its sub-routines until further resolution is found.
+
+```
+# run_floorplan
+init_floorplan
+place_io
+global_placement_or
+tap_decap_or
+
+# run_placement
+global_placement_or
+run_resizer_design
+detailed_placement_or
+```
+
+### Introduction to Delay Tables
+
+- The delay associated with a gate or cell is influenced by the input transition (slew) time and the output load capacitance (Cload).  
+- Cell delay is computed using Non-Linear Delay Models (NLDM), which provide high accuracy as they are derived from SPICE characterizations. This delay depends on the input slew rate, wire capacitance, and the pin capacitance of the connected cells.  
+  - When the input transition time is slow, it reduces the speed at which the transistors within the cell can switch states (from logic 1 to 0 or vice versa), resulting in increased gate delay.  
+  - Similarly, a larger output load (comprising Cnet + Cpin) contributes to higher delay, as the circuit takes longer to charge or discharge.  
+- In addition to cell delay tables, library files include corresponding tables to compute output transition values, structured similarly to the delay models.  
+- These table models are typically two-dimensional, relying on both input slew and output load capacitance (Cload) for lookup operations.  
+
+![stalib](/images/PD/stalib.png)
+
+- **Table Components:**  
+  - `index_1` – Input transition time (slew)  
+  - `index_2` – Output capacitance (Cload)  
+  - `values` – Cell delay values  
+
+- **Case Analysis:**  
+  - **Direct Match (Case 1):**  
+    - If the input slew and output load values align with the table indices, the corresponding delay is directly extracted from the values table.  
+  - **Interpolation (Case 2):**  
+    - When the output load does not match the table indices, interpolation is applied between the nearest table values to estimate the delay.  
+
+Source: "STA for Nanometer Designs" by J. Bhasker, Rakesh Chadha
+
+| ![class1](/images/PD/class1.png) | ![class2](/images/PD/class2.png) |
+|:---|:---|
+
+| ![class3](/images/PD/class3.png) | ![class4](/images/PD/class4.png) |
+|:---|:---|
+
+| ![class5](/images/PD/class5.png) |  |
+|:---|:---|
+
+### Lab: Configure synthesis settings to fix the timing violations and improve slack
+
+- For my case the sta report after synthesis is 0 wns and 0 tns. in case if you get negative wns and tns follwoing lab step would help you reduce their values. Achieving timing closure in post-route Static Timing Analysis (STA) requires minimizing this negative slack during synthesis.
+
+![stareport](/images/PD/stareport.png)
+
+**Reviewing Synthesis Configuration Variables:**  
+  The following synthesis variables could be contributing to the unfavorable timing results:  
+
+```  
+echo $::env(SYNTH_STRATEGY)      :== AREA 0  
+echo $::env(SYNTH_BUFFERING)     :== 1  
+echo $::env(SYNTH_SIZING)        :== 0  
+echo $::env(SYNTH_DRIVING_CELL)  :== sky130_fd_sc_hd__inv_8  
+```  
+
+**Optimizing for Delay:**  
+  To improve timing, adjust the synthesis strategy to prioritize delay optimization and enable cell sizing rather than relying solely on buffering.  
+
+```  
+set ::env(SYNTH_STRATEGY) "DELAY 1"  
+set ::env(SYNTH_SIZING) 1  
+```  
+
+**Outcome:**  
+  The updated synthesis configuration significantly reduces both WNS and TNS, bringing the design closer to timing closure. The improvements in slack values make the remaining adjustments more manageable during subsequent design stages.
+
+## 2. Timing analysis with ideal clocks using openSTA
+
+### Setup Timing Analysis and Flip-Flop Setup Time Overview
+
+- When analyzing setup timing for single-cycle paths under ideal clock conditions (where the same clock triggers the launch and capture flip-flops), the following condition must be satisfied:
+
+```    
+T_clk > tc_q + t_comb + t_setup
+```
+
+Where:
+- T_clk: Ideal clock period
+- tc_q: Clock-to-Q delay of the flip-flop
+- t_comb: Total combinational delay, including wire and net delay from the launch flop's output pin to the capture flop's input pin
+- t_setup: Flip-flop setup time requirement
+
+**Understanding Flip-Flop Setup Time**
+
+- The setup time represents the minimum period required for the internal components of the flip-flop to successfully register the value at the D input before the arrival of the clock edge.
+- The precise setup time varies based on the flip-flop design. In designs using a latch-multiplexer combination for edge-triggered flip-flops (with a negative latch preceding a positive latch), the setup time corresponds to the delay needed for the D input to propagate to the internal node QM (which is essentially the delay of the initial latch or multiplexer).
+
+**Clock Jitter**
+
+-  Clock jitter is the fluctuation in the clock period over time at a specific location. This means the clock period may shrink or expand from one cycle to the next.
+- Jitter is purely a temporal uncertainty parameter measured at various points on the chip.
+- Different forms of jitter exist, including cycle-to-cycle jitter, which measures the deviation between consecutive clock cycles at a specific location:
+
+```
+Tjitter,i(n) = [(Ti, n+1 - Ti,n) - TCLK]
+```
+
+Where:
+- Ti,n: Clock period during cycle n
+- Ti,n+1: Clock period during the next cycle (n+1)
+- TCLK: Nominal clock period
+
+**Setup Uncertainty**
+
+- Clock uncertainty defines the range within which a clock edge may arrive. For setup timing, the concept of setup uncertainty models factors such as clock jitter, additional margins, and clock skew (particularly before clock tree synthesis, or CTS).
+
+| ![pdsta1](/images/PD/pdsta1.png) | ![pdsta2](/images/PD/pdsta2.png) |
+|:---|:---|
+
+| ![pdsta3](/images/PD/pdsta3.png) | ![pdsta4](/images/PD/pdsta4.png) |
+|:---|:---|
+
+| ![pdsta5](/images/PD/pdsta5.png) | ![pdsta6](/images/PD/pdsta6.png) |
+|:---|:---|
+
+| ![pdsta7](/images/PD/pdsta7.png) | ![pdsta8](/images/PD/pdsta8.png) |
+|:---|:---|
+
+| ![pdsta9](/images/PD/pdsta9.png) | ![pdsta10](/images/PD/pdsta10.png) |
+|:---|:---|
+
+### Lab: Configuring OpenSTA for Post-Synthesis Timing Analysis
+
+- Throughout the place-and-route (PnR) process, some timing violations may resolve, improve, worsen, or new ones may emerge.
+- In most PnR workflows, dedicated tools (like PrimeTime) are employed externally to perform timing analysis and generate timing engineering change orders (ECOs).
+- In OpenLANE, OpenSTA is used to conduct post-synthesis timing analysis.
+  
+**Configuring OpenSTA (pre_sta.conf):**
+
+```
+set_cmd_units -time ns -capacitance fF -current uA -voltage V -resistance kOhm -distance um
+
+read_liberty -max ./designs/picorv32a/src/sky130_fd_sc_hd__slow.lib
+read_liberty -min ./designs/picorv32a/src/sky130_fd_sc_hd__fast.lib
+
+read_verilog ./designs/picorv32a/runs/latest_21-03/results/synthesis/picorv32a.synthesis.v
+
+link_design picorv32a
+read_sdc ./designs/picorv32a/src/my_base.sdc
+
+check_setup -verbose
+
+report_checks -path_delay min_max -fields {nets cap slew trans input_pins}
+report_tns
+report_wns
+```
+
+**SDC File (my_base.sdc):**
+
+```
+set ::env(CLOCK_PORT) clk
+set ::env(CLOCK_PERIOD) 12.000
+set ::env(SYNTH_DRIVING_CELL) sky130_fd_sc_hd__inv_8
+set ::env(SYNTH_DRIVING_CELL_PIN) Y
+set ::env(SYNTH_CAP_LOAD) 17.65
+
+create_clock [get_ports $::env(CLOCK_PORT)] -name $::env(CLOCK_PORT) -period $::env(CLOCK_PERIOD)
+
+set IO_PCT 0.2
+set input_delay_value [expr $::env(CLOCK_PERIOD) * $IO_PCT]
+set output_delay_value [expr $::env(CLOCK_PERIOD) * $IO_PCT]
+
+set clk_indx [lsearch [all_inputs] [get_port $::env(CLOCK_PORT)]]
+set all_inputs_wo_clk [lreplace [all_inputs] $clk_indx $clk_indx]
+
+set_input_delay $input_delay_value -clock [get_clocks $::env(CLOCK_PORT)] $all_inputs_wo_clk
+set_output_delay $output_delay_value -clock [get_clocks $::env(CLOCK_PORT)] [all_outputs]
+
+set_driving_cell -lib_cell $::env(SYNTH_DRIVING_CELL) -pin $::env(SYNTH_DRIVING_CELL_PIN) [all_inputs]
+set cap_load [expr $::env(SYNTH_CAP_LOAD) / 1000.0]
+set_load $cap_load [all_outputs]
+```
+
+**Running OpenSTA:**
+
+cd OpenLane/
+
+```
+sta pre_sta.conf
+```
+
+### Lab: Reducing Setup Violations in Synthesis
+
+- Additional synthesis configuration parameters can help reduce setup slack. To manage nets with high fanout (leading to violations), limiting fanout can improve delay:
+    
+```
+set ::env(SYNTH_MAX_FANOUT) 4
+```
+
+![stareport2](/images/PD/stareport2.png)
+
+- To display nets driven by a particular cell pin:
+
+```
+report_net -connections <net_name>
+```
+
+### Lab: Performing Basic Timing ECO
+
+- Setup violation analysis in OpenSTA can reveal factors contributing to delays.
+- A common issue involves excessive output slew caused by large capacitance or high fanout. This can be mitigated by upsizing the driving cell (replacing it with a higher drive strength variant) using the following command:
+  
+  ```
+  replace_cell <instance> <new_lib_cell>
+  ```
+  Example:
+  ```
+  replace_cell _44195_ sky130_fd_sc_hd__inv_4
+  ```
+- Verifying the violation resolution:
+  ```
+  report_checks -from <instance> -to <instance> -through <instance> -path_delay max
+  ```
+- After modifying the netlist through ECOs, the updated netlist must be saved:
+  ```
+  write_verilog $OPENLANE_HOME/designs/picorv32a/runs/latest_21-03/results/synthesis/picorv32a.synthesis.v
+  ```
+
+- Resolving timing violations through Engineering Change Orders (ECOs) is an iterative and repetitive process.  
+- The Static Timing Analysis (STA) engineer makes adjustments such as upsizing cells, swapping cells for different threshold voltage (Vt) variants, or inserting buffers to address violations. These modifications are then handed over to the Place and Route (PnR) engineer.  
+- The PnR engineer integrates the ECOs, re-executes the PnR flow, and conducts post-route timing analysis using back-annotated data that reflects parasitic effects.  
+- While this process can resolve existing violations, it may also introduce new ones. The STA engineer subsequently reanalyzes the design, identifies remaining or new violations, and issues additional ECOs to address them. This cycle continues until all timing violations are effectively resolved.
+
+## 3. Clock tree synthesis TritonCTS and signal integrity
+
+### Clock tree routing and buffering using H-Tree algorithm
+
+Clock Tree Synthesis (CTS) involves connecting clock signals to the clock pins of all sequential components in a design. This is achieved using inverters or buffers to balance clock skew and minimize insertion delay.
+
+| **Ideal Clock Tree before CTS** <br>  ![IdealClockTreeBeforeCTS](/images/PD/IdealClockTreeBeforeCTS.png) | **Real Clock tree (H-tree) after CTS** <br>  ![RealClockTreeAfterCTS](/images/PD/RealClockTreeAfterCTS.png)
+|---|---|
+
+- **Key Quality of Results (QoR) Metrics for CTS**:
+  1. **Clock Insertion Delay (Latency)**: The time taken for the clock signal to travel from the source to the sink pin.  
+  2. **Clock Skew**: The difference in clock arrival times at different sinks, further categorized as:  
+    - **Local Skew**: Timing difference between two registers with valid timing paths.  
+    - **Global Skew**: Timing difference between any two registers, regardless of timing paths.  
+  3. **Clock Slew (Transition Time)**: Measures how quickly a clock signal transitions. Lower slew ensures precise timing but increases area and power due to larger buffers.  
+  4. **Duty Cycle**: Variations in rise and fall times of clock buffers can distort the duty cycle. Using inverters instead of buffers helps mitigate this distortion.  
+  5. **Pulse Width**: Registers (flip-flops and latches) and SRAMs have specific requirements for minimum high and low pulse widths within a clock period to meet their internal timing. 
+
+- **H-Tree Algorithm for Clock Tree Routing**
+  - The H-Tree algorithm minimizes clock skew by reducing routing length, forming the clock tree in the shape of a **"H"**
+  - <ins>Algorithm Steps:</ins>
+    1. Identify all clocked registers.  
+    2. Determine the center point of these registers.  
+    3. Connect the clock source to the center.  
+    4. Split the layout into two regions and trace each center point.  
+    5. Repeat the division and tracing process until reaching the individual clock pins of registers.  
+    6. Continue until the entire clock network is completed.    
+    7. [Ref Page](https://en.wikipedia.org/wiki/H_tree):
+
+- **Clock buffering**
+  - To achieve the desired clock slew and transition time, clock buffers or repeaters are added at multiple levels in the clock distribution network:  
+    - Buffers split RC wire loads across multiple stages.  
+    - Inverters are preferred over buffers to reduce duty cycle distortion (DCD) (Clock buffers need to have equal rise and fall times). 
+
+### Clock Signal Integrity: Crosstalk and Clock Net Shielding
+- **Crosstalk Glitch**
+  - **Cause**: Capacitive coupling from high-slew nets near clock nets.  
+  - **Effect**: Can induce unintended voltage spikes, creating unwanted clock pulses.  
+  - **Severity**:  
+    - **Safe Glitch**: Voltage spike stays within noise margins.  
+    - **Unsafe Glitch**: Exceeds noise margin, potentially causing metastability or system failure. 
+
+- **Crosstalk Delta Delay**
+  - Crosstalk delay occurs when both aggressor and victim nets switch together.
+  - **Effect on Clock Tree**:  
+    - **Same Direction Transition**: Victim net transitions faster, reducing delay.  
+    - **Opposite Direction Transition**: Victim net transition slows, increasing delay.  
+    - **Impact**: Skew imbalance in clock trees, leading to setup or hold violations.  
+
+- **Clock Net Shielding**
+  - Critical clock nets are shielded to prevent crosstalk by placing shielding lines (connected to VDD or GND) along the clock net’s length.  
+  - Shielding ensures the clock remains unaffected by nearby aggressor signals.
+
+| ![cts1](/images/PD/cts1.png) | ![cts2](/images/PD/cts2.png) |
+|:---|:---|
+
+| ![cts3](/images/PD/cts3.png) | ![cts4](/images/PD/cts4.png) |
+|:---|:---|
+
+| ![cts5](/images/PD/cts5.png) | ![cts6](/images/PD/cts6.png) |
+|:---|:---|
+
+| ![cts7](/images/PD/cts7.png) | ![cts8](/images/PD/cts8.png) |
+|:---|:---|
+
+### Lab: Steps to run CTS using TritonCTS
+  - Command to run cts: `run_cts`
+  - After CTS run, report_worst_slack -max (Setup): worst slack 13.65 and report_worst_slack -min (Hold): worst slack 0.18 
+  - (No result as per video)After CTS, a new netlist **<design_name>.synthesis_cts.v** will be created in the `runs/<tag>/results/synthesis/` folder that includes the information on the generated clock clock tree and the newly instanced clock buffers.
+
+### Lab: Steps to verify CTS runs
+  - CTS configuration variables to verify:
+
+  | Configuration Variable | Details |
+  |:---|:---|
+  | `CTS_TARGET_SKEW` | The target clock skew in picoseconds, usually 10% of the clock period. |
+  | `CTS_ROOT_BUFFER` | The name of cell inserted at the root of the clock tree (`sky130_fd_sc_hd__clkbuf_16` in our case) |
+  | `CTS_TOLERANCE` | An integer value that represents a tradeoff of QoR and runtime. <br>  Higher values will produce smaller runtime but worse QoR. |
+  | `LIB_CTS` | The liberty file used for CTS. By default, this is the `LIB_SYNTH_COMPLETE` minus the cells with drc errors. |
+  | `CTS_MAX_CAP` | Defines the maximum capacitance for clock tree synthesis in the design in pF. |
+
+## 4. Timing Analysis with real clocks using OpenSTA
+
+### Setup timing and Hold timing analysis using real clocks
+
+| ![openstapd1](/images/PD/openstapd1.png) | ![openstapd2](/images/PD/openstapd2.png) |
+|:---|:---|
+
+| ![openstapd3](/images/PD/openstapd3.png) | ![openstapd4](/images/PD/openstapd4.png) |
+|:---|:---|
+
+| ![openstapd5](/images/PD/openstapd5.png) | ![openstapd6](/images/PD/openstapd6.png) |
+|:---|:---|
+
+| ![openstapd7](/images/PD/openstapd7.png) | ![openstapd8](/images/PD/openstapd8.png) |
+|:---|:---|
+
+| ![openstapd9](/images/PD/openstapd9.png) | ![openstapd10](/images/PD/openstapd10.png) |
+|:---|:---|
+
+| ![openstapd11](/images/PD/openstapd11.png) | ![openstapd12](/images/PD/openstapd12.png) |
+|:---|:---|
+
+| ![openstapd13](/images/PD/openstapd13.png) | |
+|:---|:---|
+
+### Lab: Steps to analyze timing with real clocks (Post-CTS STA) using OpenSTA
+  - In OpenRoad, the timing analysis is performed by creating a db file using the LEF and DEF files of the design.
+  - db creation is a one-time process (unless the def changes).
+    To create the db, invoke OpenRoad from within the OpenLANE shell using `openroad`. And then from within the OpenRoad shell execute the following commands:  
+    ```
+    read_lef /home/akhilgunda/OpenLane/designs/picorv32a/runs/<RUN_Folder>/tmp/merged.lef
+    read_def /home/akhilgunda/OpenLane/designs/picorv32a/runs/<RUN_Folder>/results/cts/picorv32a.def
+    write_db picorv32a_cts.db
+    ```
+  - Performing STA:
+    ```
+    read_db picorv32a_cts.db
+    read_verilog /home/akhilgunda/OpenLane//designs/picorv32a/runs/<RUN_Folder>/results/synthesis/picorv32a.v
+    read_liberty $::env(LIB_SYNTH_COMPLETE)
+    ##read_liberty -max $::env(LIB_SLOWEST)
+    ##read_liberty -min $::env(LIB_FASTEST)
+    link_design picorv32a
+    read_sdc /home/akhilgunda/OpenLane/designs/picorv32a/src/my_base.sdc
+    set_propagated_clock [all_clocks]
+    report_checks -path_delay min_max -format full_clock_expanded -digits 4 -fields {net cap slew input_pins fanout}
+    ```
+  - Be sure to perform the timing analysis with the correct library file which was used for CTS (which was the LIB_SYNTH_COMPLETE or the LIB_TYPICAL in our case). 
+  * **Note:** As of now, CTS does not support multi-corner optimization.
+
+### Lab: Steps to observe impact of bigger CTS buffers on setup and hold timing
+  - Modify the `CTS_CLK_BUFFER_LIST` variable to exclude the `sky130_fd_sc_hd__clkbuf_1` cell and re-run CTS again.
+  - Be sure to modify the `CURRENT_DEF` variable to point to the DEF file after placement before triggering the CTS run.
+    ```
+    % echo $::env(CTS_CLK_BUFFER_LIST)
+    sky130_fd_sc_hd__clkbuf_1 sky130_fd_sc_hd__clkbuf_2 sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8
+
+    set ::env(CTS_CLK_BUFFER_LIST) [lreplace $::env(CTS_CLK_BUFFER_LIST) 0 0]
+    set ::env(CURRENT_DEF) /openLANE_flow/designs/picorv32a/runs/latest_21-03/results/placement/picorv32a.placement.def
+
+    run_cts
+    ```
+  - We can observe an improvement in setup and hold slacks; however, this enhancement often comes at the cost of significantly increased area and power consumption due to the use of larger clock buffers.
+
+</details>
 
 <details>
 <summary> Day 5: Final steps for RTL2GDS using tritonRoute and openSTA </summary>
 
-## 1.
+## 1. 
 
 ###
 
-</deatils>
+</details>
