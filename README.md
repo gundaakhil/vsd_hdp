@@ -4081,7 +4081,7 @@ set ::env(SYNTH_SIZING) 1
 
 - When analyzing setup timing for single-cycle paths under ideal clock conditions (where the same clock triggers the launch and capture flip-flops), the following condition must be satisfied:
 
-```    
+```
 T_clk > tc_q + t_comb + t_setup
 ```
 
@@ -4098,7 +4098,7 @@ Where:
 
 **Clock Jitter**
 
--  Clock jitter is the fluctuation in the clock period over time at a specific location. This means the clock period may shrink or expand from one cycle to the next.
+- Clock jitter is the fluctuation in the clock period over time at a specific location. This means the clock period may shrink or expand from one cycle to the next.
 - Jitter is purely a temporal uncertainty parameter measured at various points on the chip.
 - Different forms of jitter exist, including cycle-to-cycle jitter, which measures the deviation between consecutive clock cycles at a specific location:
 
@@ -4107,6 +4107,7 @@ Tjitter,i(n) = [(Ti, n+1 - Ti,n) - TCLK]
 ```
 
 Where:
+
 - Ti,n: Clock period during cycle n
 - Ti,n+1: Clock period during the next cycle (n+1)
 - TCLK: Nominal clock period
@@ -4381,8 +4382,362 @@ Clock Tree Synthesis (CTS) involves connecting clock signals to the clock pins o
 <details>
 <summary> Day 5: Final steps for RTL2GDS using tritonRoute and openSTA </summary>
 
-## 1. 
+## 1. Routing and design rule check (DRC)
 
-###
+### Introduction to Maze Routing - Lee's Algorithm
 
+- **Lee's Algorithm** is a breadth-first search-based approach to solving maze routing problems:
+  - It guarantees finding a path between the source and target if one exists.
+  - The algorithm always determines the shortest possible path between the source and target nodes.
+
+  **Steps of Lee's Algorithm**
+  1) Divide the layout into a routing grid, accounting for keep-off zones around pre-placed macros and logical blockages, such as the I/O pad ring.  
+  2) Identify the source pin (S) and the target pin (T) within the grid.  
+  3) Starting from grid point "S," label all adjacent horizontal and vertical grid cells (diagonals are not considered) as "1." Continue iterating outward, labeling the next set of adjacent cells as "2," and so on, until the grid box containing the target pin "T" is reached.  
+  4) The wave expansion process only marks points in areas where routing is possible, avoiding blockages or already wired sections.  
+  5) Routes with fewer bends are prioritized for optimal efficiency.  
+
+| ![route1](/images/PD/route1.png) | ![route2](/images/PD/route2.png) |
+|:---|:---|
+
+| ![route3](/images/PD/route3.png) | ![route4](/images/PD/route4.png) |
+|:---|:---|
+
+| ![route5](/images/PD/route5.png) | ![route6](/images/PD/route6.png) |
+|:---|:---|
+
+| ![route7](/images/PD/route7.png) | ![route8](/images/PD/route8.png) |
+|:---|:---|
+
+| ![route9](/images/PD/route9.png) | ![route10](/images/PD/route10.png) |
+|:---|:---|
+
+| ![route11](/images/PD/route11.png) | ![route12](/images/PD/route12.png) |
+|:---|:---|
+
+- The route with lower number of bends is preferred.
+- Although effective, Lee's Algorithm is resource-intensive, requiring substantial memory and runtime.  
+- To address these limitations, more sophisticated techniques, such as the Line Search algorithm and the Steiner tree algorithm, are commonly used.
+
+### Design Rule Check during routing
+- While routing, the tool must adhere to the design rules defined in the process design kit (PDK).  
+- These DRC rules originate from manufacturing constraints, such as photolithography, and dictate parameters like minimum wire width, spacing between wires, and allowable pitch.
+
+| ![drc1](/images/PD/drc1.png) | ![drc2](/images/PD/drc2.png) |
+|:---|:---|
+
+| ![drc3](/images/PD/drc3.png) |  |
+|:---|:---|
+
+- For details on DRC rules for local interconnect and metal layers in the Sky130 PDK, refer to the [SkyWater PDK documentation](https://skywater-pdk.readthedocs.io/en/main/rules/periphery.html#li).
+
+  **A Signal short during route. Fixing it using other metal layers gives rise to new DRC checks related to VIAs** 
+
+| ![drc4](/images/PD/drc4.png) | ![drc5](/images/PD/drc5.png) |
+|:---|:---|
+
+| ![drc6](/images/PD/drc6.png) | ![drc7](/images/PD/drc7.png) |
+|:---|:---|
+
+## 2. Power Distribution Network and Routing
+
+### Lab: Steps to build Power Distribution Network
+- Levels of Power distribution
+  ```
+  > VDD, VSS pins/ balls
+    |--> VDD, VSS pads
+          |--> Core Power Rings
+              |--> VDD, VSS Horizontal, Vertical Straps
+                    |--> Standard Cell Rails
+                    |
+                    |--> Macro Power Ring
+  ```
+
+  | ![PowerDistributionNetwork](/images/PD/PowerDistributionNetwork.png) |
+  |:---|
+  | _**Source:**_ [Power Distribution Network](https://vlsibyjim.blogspot.com/2015/03/power-planning.html) |
+
+- Unlike the general ASIC flow, Power Distribution Network generation is not a part of floorplan run in OpenLANE. PDN must be generated after CTS and post-CTS STA analyses: For that we can check the current def environment variable: `echo $::env(CURRENT_DEF)` which to point to cts .def file.
+
+  * Command to generate PDN in openLANE: `run_power_grid_generation` or `gen_pdn`
+
+  | **Layout after PDN generation** <br>  ![LayoutafterPDN](/images/PD/LayoutafterPDN.png) |
+  |:---|
+  | **Layout zoomed** <br>  ![LayoutafterPDNGenerationZoomed](/images/PD/LayoutafterPDNGenerationZoomed.png) |
+
+### Basics of global and detail routing
+- The routing process involves two key engines, each responsible for different stages:
+
+1. **Global Routing**:  
+   At this stage, the routing area is divided into rectangular grid cells, forming a coarse 3D routing graph. This step is managed by the "FASTE ROUTE" engine, which provides an initial routing guide.  
+
+2. **Detailed Routing**:  
+   This phase focuses on finer grid resolution and utilizes routing guides from the global routing stage to implement the actual physical connections. The "tritonRoute" engine refines the global routing results by applying advanced algorithms and optimizations to determine the most efficient paths for connecting pins.
+
+- In summary:  
+  - **Global Routing** uses "FASTE ROUTE" to generate routing guides.  
+  - **Detailed Routing** employs "tritonRoute" to finalize the routing by leveraging the guides and optimizing connectivity.
+
+| ![routing1](/images/PD/routing1.png) | ![routing2](/images/PD/routing2.png) |
+|:---|:---|
+
+| ![routing3](/images/PD/routing3.png) | |
+|:---|:---|
+
+### Lab: Steps to perform routing
+- To run the routing in OpenLANE, execute: `run_routing`
+
+  - Errors
+  
+- **Post-route STA**
+  ```
+  read_lef /openLANE_flow/designs/picorv32a/runs/latest_25-03/tmp/merged.lef
+  read_def /openLANE_flow/designs/picorv32a/runs/latest_25-03/results/routing/picorv32a.def
+  read_spef /openLANE_flow/designs/picorv32a/runs/latest_25-03/results/routing/picorv32a.spef
+  
+  write_db picorv32a_routing.db
+  
+  read_db picorv32a_routing.db
+  read_verilog /openLANE_flow/designs/picorv32a/runs/latest_25-03/results/synthesis/picorv32a.synthesis_preroute.v
+  read_liberty $::env(LIB_SYNTH_COMPLETE)
+  ##read_liberty -max $::env(LIB_SLOWEST)
+  ##read_liberty -min $::env(LIB_FASTEST)
+  link_design picorv32a
+  read_sdc /openLANE_flow/designs/picorv32a/src/my_base.sdc
+  set_propagated_clock [all_clocks]
+  report_checks -path_delay min_max -format full_clock_expanded -digits 4 -fields {net cap slew input_pins fanout}
+  ```
+
+## 3. TritonRoute Features
+  * Performs initial detail route
+  * Honors the preprocessed route guides (obtained after global route) - i.e., attempts as much as possible to route within route guides.
+  * Assumes route guides for each net satisfy inter-guide connectivity.
+  * Works on proposed MILP-based panel routing scheme with intra-layer parallel and inter-layer sequential routing framework.
+
+| ![routing3](/images/PD/routing3.png) | |
+|:---|:---|
+
+</details>
+
+<details>
+<summary>OpenRoad Physical Design</summary>
+
+## **What is OpenLane?**
+OpenLane is an open-source, end-to-end physical design toolchain for digital ASIC (Application-Specific Integrated Circuit) design. It is built to automate the process of taking a high-level hardware description (e.g., in Verilog or VHDL) through to a GDSII layout that can be manufactured. OpenLane integrates several open-source tools and enables designers to perform tasks like synthesis, placement, routing, and verification in a single workflow.
+
+### **Key Features of OpenLane:**
+- Automates the entire digital ASIC design flow.
+- Supports the **SkyWater 130nm open-source PDK** (Process Design Kit).
+- Provides a configuration-driven design flow to customize parameters.
+- Integrates multiple open-source tools, including OpenROAD, Yosys, Magic, KLayout, and more.
+
+## **What is OpenROAD?**
+OpenROAD (Open Runtime for Open Access Design) is an open-source EDA (Electronic Design Automation) tool focused on achieving autonomous and efficient digital chip design. It specializes in performing specific stages of the physical design process, such as floorplanning, placement, clock tree synthesis, routing, and static timing analysis.
+
+### **Key Features of OpenROAD:**
+- Provides solutions for key steps of physical design like placement and routing.
+- Optimized for scalability, automation, and reducing manual intervention.
+- Aims to achieve a "no-human-in-the-loop" design approach.
+
+### **How OpenLane and OpenROAD Are Connected:**
+- **Integration in Workflow:** OpenROAD is one of the core tools used within the OpenLane toolchain. It performs critical physical design tasks, including placement, clock tree synthesis, routing, and optimization.
+- **Toolchain Component:** OpenLane leverages OpenROAD for automated and efficient execution of specific design stages. For example:
+  - OpenROAD handles tasks like standard cell placement, detailed routing, and clock tree synthesis in OpenLane.
+  - The results generated by OpenROAD are fed back into the OpenLane flow for subsequent stages like verification.
+- **Shared Vision:** Both tools aim to democratize access to ASIC design by reducing the cost and complexity associated with traditional EDA tools.
+
+In summary, **OpenLane** is a comprehensive flow that incorporates tools like **OpenROAD** for specific steps in the ASIC design process. OpenLane acts as a wrapper or orchestrator for OpenROAD and other tools, ensuring seamless integration and a streamlined design process.
+
+## OpenROAD installation guide
+
+### Steps to Install OpenROAD and Run GUI
+
+1. Clone the OpenROAD Repository and Run the Setup Script
+
+  ```
+  git clone --recursive https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts
+  cd OpenROAD-flow-script
+  sudo ./setup.sh
+  ``` 
+
+![openroadpd1](/images/OpenRoad/openroadpd1.png)
+
+2. Build OpenROAD
+
+  ```
+  ./build_openroad.sh --local
+  ```
+
+![openroadpd2](/images/OpenRoad/openroadpd2.png)
+
+3. Verify Installation
+
+  ```
+  source ./env.sh
+  yosys -help  
+  openroad -help
+  ```
+
+![openroadpd3](/images/OpenRoad/openroadpd3.png)
+![openroadpd4](/images/OpenRoad/openroadpd4.png)
+
+4. Run the OpenROAD Flow
+
+  ```
+  cd flow
+  make
+  ```
+
+![openroadpd5](/images/OpenRoad/openroadpd5.png)
+
+5. Launch the graphical user interface (GUI) to visualize the final layout:
+
+  ```
+  make gui_final
+  ```
+
+![openroadpd6](/images/OpenRoad/openroadpd6.png)
+
+**ORFS Directory Structure and File formats**
+
+``` 
+├── OpenROAD-flow-scripts             
+│   ├── docker           -> It has Docker based installation, run scripts and all saved here
+│   ├── docs             -> Documentation for OpenROAD or its flow scripts.  
+│   ├── flow             -> Files related to run RTL to GDS flow  
+|   ├── jenkins          -> It contains the regression test designed for each build update
+│   ├── tools            -> It contains all the required tools to run RTL to GDS flow
+│   ├── etc              -> Has the dependency installer script and other things
+│   ├── setup_env.sh     -> Its the source file to source all our OpenROAD rules to run the RTL to GDS flow
+```
+
+![openroadpd7](/images/OpenRoad/openroadpd7.png)
+
+Now, go to flow directory
+
+``` 
+├── flow           
+│   ├── design           -> It has built-in examples from RTL to GDS flow across different technology nodes
+│   ├── makefile         -> The automated flow runs through makefile setup
+│   ├── platform         -> It has different technology note libraries, lef files, GDS etc 
+|   ├── tutorials        
+│   ├── util            
+│   ├── scripts             
+```
+
+![openroadpd8](/images/OpenRoad/openroadpd8.png)
+
+**Automated RTL2GDS Flow for VSDBabySoC:**
+
+Initial Steps:
+
+- We need to create a directory `vsdbabysoc` inside `OpenROAD-flow-scripts/flow/designs/sky130hd`
+- Now create a directory `vsdbabysoc` inside `OpenROAD-flow-scripts/flow/designs/src` and include all the verilog files here.
+- Now copy the folders `gds`, `include`, `lef` and `lib` from the VSDBabySoC folder in your system into this directory, `sky130hd/vsdbabysoc`.
+  - The `gds` folder would contain the files `avsddac.gds` and `avsdpll.gds`
+  - The `include` folder would contain the files `sandpiper.vh`, `sandpiper_gen.vh`, `sp_default.vh` and `sp_verilog.vh`
+  - The `gds` folder would contain the files `avsddac.lef` and `avsdpll.lef`
+  - The `lib` folder would contain the files `avsddac.lib` and `avsdpll.lib`
+- Now copy the constraints file(`vsdbabysoc_synthesis.sdc`) from the VSDBabySoC folder in your system into this directory, `sky130hd/vsdbabysoc`.
+- Now copy the files(`macro.cfg` and `pin_order.cfg`) from the VSDBabySoC folder in your system into this directory,`sky130hd/vsdbabysoc`.
+- Now, create a `config.mk` file in `sky130hd/vsdbabysoc` whose contents are shown below:
+
+  ```
+  # Design and Platform Configuration
+    export DESIGN_NICKNAME = vsdbabysoc
+    export DESIGN_NAME = vsdbabysoc
+    export PLATFORM    = sky130hd
+
+    # Design Paths
+    export vsdbabysoc_DIR = /home/akhilgunda/OpenROAD-flow-scripts/flow/designs/sky130hd/$(DESIGN_NICKNAME)
+
+    # Explicitly list Verilog files for synthesis
+    export VERILOG_FILES = /home/akhilgunda/OpenROAD-flow-scripts/flow/designs/src/vsdbabysoc/vsdbabysoc.v \
+                          /home/akhilgunda/OpenROAD-flow-scripts/flow/designs/src/vsdbabysoc/rvmyth.v \
+                          /home/akhilgunda/OpenROAD-flow-scripts/flow/designs/src/vsdbabysoc/clk_gate.v
+
+
+    # Include Directory for Verilog Header Files
+    export VERILOG_INCLUDE_DIRS = $(vsdbabysoc_DIR)/include
+
+    # Constraints File
+      export SDC_FILE = $(vsdbabysoc_DIR)/vsdbabysoc_synthesis.sdc
+
+    # Additional GDS Files
+      export ADDITIONAL_GDS = $(vsdbabysoc_DIR)/gds/avsddac.gds \
+                              $(vsdbabysoc_DIR)/gds/avsdpll.gds
+
+    # Additional LEF Files
+    export ADDITIONAL_LEFS = $(vsdbabysoc_DIR)/lef/avsddac.lef \
+                              $(vsdbabysoc_DIR)/lef/avsdpll.lef
+
+    # Additional LIB Files
+    export ADDITIONAL_LIBS = $(vsdbabysoc_DIR)/lib/avsddac.lib \
+                              $(vsdbabysoc_DIR)/lib/avsdpll.lib
+
+  # Pin Order and Macro Placement Configurations
+    export FP_PIN_ORDER_CFG = $(vsdbabysoc_DIR)/pin_order.cfg
+    export MACRO_PLACEMENT_CFG = $(vsdbabysoc_DIR)/macro.cfg
+
+  # Clock Configuration
+    export CLOCK_PORT = CLK
+    export CLOCK_NET  = $(CLOCK_PORT)
+    export CLOCK_PERIOD = 20.0
+
+  # Floorplanning Configuration
+    export DIE_AREA   = 0 0 1600 1600
+    export CORE_AREA  = 20 20 1590 1590
+
+  # Placement Configuration
+    export PLACE_PINS_ARGS = -exclude left:0-600 -exclude left:1000-1600 -exclude right:* -exclude top:* -exclude bottom:*
+
+  # Tuning for Timing and Buffers
+    export TNS_END_PERCENT     = 100
+    export REMOVE_ABC_BUFFERS  = 1
+    export CTS_BUF_DISTANCE    = 600
+    export SKIP_GATE_CLONING   = 1
+
+  # Magic Tool Configuration
+    export MAGIC_ZEROIZE_ORIGIN = 0
+    export MAGIC_EXT_USE_GDS    = 1
+  ```
+
+6. Now go to terminal and run the following commands:
+
+  ```
+  cd OpenROAD-flow-scripts
+  source env.sh
+  cd flow
+  ```
+
+7. Commands for synthesis:
+  
+  ```
+  make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk synth
+  ```
+
+![openroadpd9](/images/OpenRoad/openroadpd9.png)
+
+**Synthesis Netlist**
+
+![openroadpd10](/images/OpenRoad/openroadpd10.png)
+
+**Synthesis Log**
+![openroadpd11](/images/OpenRoad/openroadpd11.png)
+![openroadpd12](/images/OpenRoad/openroadpd12.png)
+
+**Synthesis Check**
+![openroadpd13](/images/OpenRoad/openroadpd13.png)
+
+**Synthesis Stat**
+![openroadpd14](/images/OpenRoad/openroadpd14.png)
+![openroadpd15](/images/OpenRoad/openroadpd15.png)
+
+8. Commands for floorplan:
+
+  ```
+  make DESIGN_CONFIG=./designs/sky130hd/vsdbabysoc/config.mk floorplan
+  ```
+
+![openroadpd16](/images/OpenRoad/openroadpd16.png)
 </details>
