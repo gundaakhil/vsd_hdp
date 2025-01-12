@@ -4344,7 +4344,7 @@ Clock Tree Synthesis (CTS) involves connecting clock signals to the clock pins o
   - db creation is a one-time process (unless the def changes).
     To create the db, invoke OpenRoad from within the OpenLANE shell using `openroad`. And then from within the OpenRoad shell execute the following commands:  
     ```
-    read_lef /home/akhilgunda/OpenLane/designs/picorv32a/runs/<RUN_Folder>/tmp/merged.lef
+    read_lef /home/akhilgunda/OpenLane/designs/picorv32a/runs/<RUN_Folder>/tmp/merged.nom.lef
     read_def /home/akhilgunda/OpenLane/designs/picorv32a/runs/<RUN_Folder>/results/cts/picorv32a.def
     write_db picorv32a_cts.db
     ```
@@ -4487,7 +4487,7 @@ Clock Tree Synthesis (CTS) involves connecting clock signals to the clock pins o
 ### Lab: Steps to perform routing
 - To run the routing in OpenLANE, execute: `run_routing`
 
-  - Errors
+![error](/images/error.png)
   
 - **Post-route STA**
   ```
